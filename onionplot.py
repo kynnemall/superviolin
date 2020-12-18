@@ -39,16 +39,28 @@ class onionplot:
             kde_points = kde.evaluate(points)
             # zero the kde points
             kde_points = kde_points - kde_points.min()
+            zeros_present = list(kde_points)
+            print(f"{zeros_present.count(0)} zeroes present already")
+            print(f"zero present at index {zeros_present.index(0)}")
             # use min and max to make the kde_points outside that dataset = 0
             idx_min = min_cuts.index(sub.min())
             idx_max = max_cuts.index(sub.max())
             if idx_min > 0:
                 for p in range(idx_min):
                     kde_points[p] = 0
+#            print(sub.min())
+#            print(points[:3])
+#            print(kde_points[:3])
+#            print('\n')
             for idx in range(idx_max - len(max_cuts), 0):
-                kde_points[idx+1] = 0
+                if idx_max - len(max_cuts) != -1:
+                    kde_points[idx+1] = 0
+#            print(sub.max())
+#            print(points[-3:])
+#            print(kde_points[-3:])
             self.w_y.append(kde_points)
             self.p_x.append(points)
+#        self.check_cutting()
         self.p_x = np.array(self.p_x)
         self.w_y = np.array(self.w_y)
         # stack the values for plotting
@@ -60,6 +72,22 @@ class onionplot:
             plt.figure()
             for i in range(self.w_y.shape[0]):
                 plt.plot(self.p_x[i], self.w_y[i])
+                
+    def check_cutting(self):
+        count = 0
+        gt = 0
+        for i in range(len(self.unique_reps)):
+            zero_count = list(self.w_y[i]).count(0)
+            count += zero_count
+            gt += i * 2
+        if gt == count:
+            print('Cutting worked')
+        else:
+            print(f"Cutting failed. {count} zeros found when there should have been {gt}")
+            for i in range(3):
+                print(onion.w_y[i][:3])
+                print(onion.w_y[i][-3:])
+            
                 
     def plot_onion(self, total_width = 0.8, linewidth = 2):
         plt.figure()
@@ -77,18 +105,8 @@ class onionplot:
             print(colors[i])
             plt.plot(violin_y[i], violin_x[i], color = colors[i], linewidth = linewidth)
             plt.fill(violin_y[i], violin_x[i], color = colors[i])
-            #plt.fill_between(violin_y[i], violin_x[i], color = colors[i])
-            
-    def simple_alternative(self):
-        w = 0.8
-        colors = ['LightGreen','LightBlue','Red','Purple','Brown']
-        reps = self.df[self.rep].unique().tolist()
-        for i,a in enumerate(self.unique_reps[::-1]):
-            sub = self.df[self.df[self.rep].isin(reps)]
-            sns.violinplot(x = 'dose', y = 'order', data = sub, cut = 0,
-                           width = w, inner = None, color = colors[i])
-            w -= 0.2
 
 onion = onionplot()
 onion.get_kde_data()
-onion.plot_onion()
+#onion.check_cutting()
+#onion.plot_onion()
