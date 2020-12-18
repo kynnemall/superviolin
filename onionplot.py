@@ -40,8 +40,7 @@ class onionplot:
             # zero the kde points
             kde_points = kde_points - kde_points.min()
             zeros_present = list(kde_points)
-            print(f"{zeros_present.count(0)} zeroes present already")
-            print(f"zero present at index {zeros_present.index(0)}")
+            print(f"{zeros_present.count(0)} zeroes present already at index {zeros_present.index(0)}")
             # use min and max to make the kde_points outside that dataset = 0
             idx_min = min_cuts.index(sub.min())
             idx_max = max_cuts.index(sub.max())
@@ -63,10 +62,6 @@ class onionplot:
 #        self.check_cutting()
         self.p_x = np.array(self.p_x)
         self.w_y = np.array(self.w_y)
-        # stack the values for plotting
-        self.w_y = np.cumsum(self.w_y, axis = 0)
-        # normalize the data to range [0,1]
-        self.w_y = self.w_y / self.w_y.max()
         # plot the data
         if plot:
             plt.figure()
@@ -95,9 +90,12 @@ class onionplot:
         violin_x = []
         colors = ['Green','Red','Blue','Pink','Purple']
         # mirror x and y values to create a continuous line
+        # normalize w_y locally for onion-plotting
+        w_y = np.cumsum(self.w_y, axis = 0)
+        w_y = w_y / w_y.max()
         for i in range(self.w_y.shape[0]):
             reshaped_x = np.append(self.p_x[i], np.flipud(self.p_x[i]))
-            reshaped_y = np.append(self.w_y[i], np.flipud(self.w_y[i]) * -1) * total_width
+            reshaped_y = np.append(w_y[i], np.flipud(w_y[i]) * -1) * total_width
             violin_x.append(reshaped_x)
             violin_y.append(reshaped_y)
         for i in range(1, self.w_y.shape[0] + 1):
@@ -105,8 +103,14 @@ class onionplot:
             print(colors[i])
             plt.plot(violin_y[i], violin_x[i], color = colors[i], linewidth = linewidth)
             plt.fill(violin_y[i], violin_x[i], color = colors[i])
+    
+    def plot_stripes(self, total_width = 0.8, linewidth = 2):
+        """ 4 lines for the striped sections of the violinplot """
+        # divide w_y data by the sum of all w_y data
+        norm_y = np.nan_to_num(self.w_y / np.sum(self.w_y, axis = 0))
+        # get left side (x values) of the violinploty
 
 onion = onionplot()
 onion.get_kde_data()
 #onion.check_cutting()
-#onion.plot_onion()
+onion.plot_onion()
