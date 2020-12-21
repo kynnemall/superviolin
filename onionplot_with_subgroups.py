@@ -24,12 +24,12 @@ class onionplot:
         self.unique_reps = self.df[self.rep].unique()
         # make sure there's enough colours for each subgroup when instantiating
         self.colors = ['Green','Red','Blue','Pink','Purple']
-        #self.get_kde_data(print_, plot_kde)
         # dictionary of arrays for subgroup data
         # loop through the keys and add an empty list when the replicate numbers don't match
         # this dataset has 22 KDEs to calculate rather than 24
         self.subgroup_dict = dict(zip(self.subgroups, [{'norm_wy' : [], 'px' : []}
                                                         for i in self.subgroups]))
+        self.get_kde_data(print_, plot_kde)
         # self.plot_stripes()
         self.palette = None
         
@@ -40,7 +40,6 @@ class onionplot:
             min_cuts = []
             max_cuts = []
             for rep in self.unique_reps:
-                print(group, rep)
                 sub = self.df[(self.df[self.rep] == rep) & (self.df[self.subgroup] == group)]
                 min_cuts.append(sub[self.y].min())
                 max_cuts.append(sub[self.y].max())
@@ -60,8 +59,11 @@ class onionplot:
                     if print_:
                         print(f"{zeros_present.count(0)} zeroes present already at index {zeros_present.index(0)}")
                     # use min and max to make the kde_points outside that dataset = 0
-                    idx_min = min_cuts.index(sub.min())
-                    idx_max = max_cuts.index(sub.max())
+                    print('One')
+                    # this fails for 0.4, figure out why
+                    idx_min = min_cuts.index(sub[self.y].min())
+                    idx_max = max_cuts.index(sub[self.y].max())
+                    print('Two')
                     if idx_min > 0:
                         for p in range(idx_min):
                             kde_points[p] = 0
