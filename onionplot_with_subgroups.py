@@ -102,7 +102,6 @@ class onionplot:
             violin_y.append(reshaped_y)
         for i in range(1, self.w_y.shape[0] + 1):
             i = i * -1
-            plt.plot(violin_y[i], violin_x[i], color = self.colors[i], linewidth = linewidth)
             plt.fill(violin_y[i], violin_x[i], color = self.colors[i])
     
     def plot_stripes(self, total_width = 0.8, linewidth = 2):
@@ -127,9 +126,9 @@ class onionplot:
         outline_x = np.append(self.norm_wy[-1], np.flipud(self.norm_wy[-1]) * -1) * total_width
         for i in range(self.w_y.shape[0]):
             reshaped_x = np.append(self.p_x[i-1], np.flipud(self.p_x[i-1]))
-            plt.plot(self.new_wy[i] * total_width, reshaped_x, color = self.colors[i], linewidth = linewidth)
             plt.fill(self.new_wy[i] * total_width, reshaped_x, color = self.colors[i])
         plt.plot(outline_x, outline_y, color = 'Black', linewidth = linewidth)
 
 onion = onionplot(subgroup = 'dose')
-#onion.plot_stripes()
+onion.plot_stripes()
+plt.ylabel('Fibre alignment')
