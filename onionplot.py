@@ -7,21 +7,23 @@ Created on Thu Dec 17 14:51:42 2020
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 
 class onionplot:
     
-    def __init__(self):
-        self.df = pd.read_csv('practice_data.csv')
-        self.x = 'dose'
-        self.y = 'order'
-        self.rep = 'replicate'
+    def __init__(self, x = 'dose', y = 'order', rep_col = 'replicate',
+                 csv_path = 'practice_data.csv', plot_kde = False, print_ = False):
+        self.df = pd.read_csv(csv_path)
+        self.x = x
+        self.y = y
+        self.rep = rep_col
         self.unique_reps = self.df[self.rep].unique()
         self.p_x, self.w_y = [], []
+        self.get_kde_data(print_, plot_kde)
+        self.colors = ['Green','Red','Blue','Pink','Purple']
         
-    def get_kde_data(self, plot = False):
+    def get_kde_data(self, print_ = False, plot = False):
         min_cuts = []
         max_cuts = []
         for i in range(len(self.unique_reps)):
@@ -30,7 +32,7 @@ class onionplot:
             max_cuts.append(sub[self.y].max())
         min_cuts = sorted(min_cuts)
         max_cuts = sorted(max_cuts)
-        # make linespace of points from highest_min_cut t0 lowest_max_cut
+        # make linespace of points from highest_min_cut to lowest_max_cut
         points = list(np.linspace(max(min_cuts), min(max_cuts), num = 128))
         points = sorted(list(set(min_cuts + points + max_cuts)))   
         for a in self.unique_reps:
@@ -62,6 +64,8 @@ class onionplot:
 #        self.check_cutting()
         self.p_x = np.array(self.p_x)
         self.w_y = np.array(self.w_y)
+        self.cum_wy = np.cumsum(self.w_y, axis = 0)
+        self.norm_wy = self.cum_wy / self.cum_wy.max() # [0,1]
         # plot the data
         if plot:
             plt.figure()
@@ -88,29 +92,42 @@ class onionplot:
         plt.figure()
         violin_y = []
         violin_x = []
-        colors = ['Green','Red','Blue','Pink','Purple']
         # mirror x and y values to create a continuous line
-        # normalize w_y locally for onion-plotting
-        w_y = np.cumsum(self.w_y, axis = 0)
-        w_y = w_y / w_y.max()
-        for i in range(self.w_y.shape[0]):
-            reshaped_x = np.append(self.p_x[i], np.flipud(self.p_x[i]))
-            reshaped_y = np.append(w_y[i], np.flipud(w_y[i]) * -1) * total_width
+        for i in range(1, self.w_y.shape[0] + 1):
+            reshaped_x = np.append(self.p_x[i-1], np.flipud(self.p_x[i-1]))
+            reshaped_y = np.append(self.norm_wy[i-1], np.flipud(self.norm_wy[i-1]) * -1) * total_width
             violin_x.append(reshaped_x)
             violin_y.append(reshaped_y)
         for i in range(1, self.w_y.shape[0] + 1):
             i = i * -1
-            print(colors[i])
-            plt.plot(violin_y[i], violin_x[i], color = colors[i], linewidth = linewidth)
-            plt.fill(violin_y[i], violin_x[i], color = colors[i])
+            plt.plot(violin_y[i], violin_x[i], color = self.colors[i], linewidth = linewidth)
+            plt.fill(violin_y[i], violin_x[i], color = self.colors[i])
     
     def plot_stripes(self, total_width = 0.8, linewidth = 2):
-        """ 4 lines for the striped sections of the violinplot """
-        # divide w_y data by the sum of all w_y data
-        norm_y = np.nan_to_num(self.w_y / np.sum(self.w_y, axis = 0))
-        # get left side (x values) of the violinploty
+        """
+        Don't need to evaluate a new KDE, just use the one from the last subarray of w_y
+        DONE: add these distances to p_x to get new x values
+        DONE: calculate new y values based on these distances
+        DONE: use the last array to plot the outline
+        """
+        self.right_sides = np.array([self.norm_wy[-1]*-1 + i*2 for i in self.norm_wy])
+        # create array of 3 lines which denote the 3 replicates on the plot
+        new_wy = []
+        for i,a in enumerate(self.p_x):
+            if i == 0:
+                newline = np.append(self.norm_wy[-1]*-1, np.flipud(self.right_sides[i]))
+            else:
+                newline = np.append(self.right_sides[i-1], np.flipud(self.right_sides[i]))
+            new_wy.append(newline)
+        self.new_wy = np.array(new_wy)
+        # use last array to plot the outline
+        outline_y = np.append(self.p_x[-1], np.flipud(self.p_x[-1]))
+        outline_x = np.append(self.norm_wy[-1], np.flipud(self.norm_wy[-1]) * -1) * total_width
+        for i in range(self.w_y.shape[0]):
+            reshaped_x = np.append(self.p_x[i-1], np.flipud(self.p_x[i-1]))
+            plt.plot(self.new_wy[i] * total_width, reshaped_x, color = self.colors[i], linewidth = linewidth)
+            plt.fill(self.new_wy[i] * total_width, reshaped_x, color = self.colors[i])
+        plt.plot(outline_x, outline_y, color = 'Black', linewidth = linewidth)
 
 onion = onionplot()
-onion.get_kde_data()
-#onion.check_cutting()
-onion.plot_onion()
+onion.plot_stripes()
