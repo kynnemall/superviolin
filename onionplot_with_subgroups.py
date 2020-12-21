@@ -24,7 +24,7 @@ class onionplot:
         self.unique_reps = self.df[self.rep].unique()
         # make sure there's enough colours for each subgroup when instantiating
         self.colors = ['Green','Red','Blue','Pink','Purple']
-        self.get_kde_data(print_, plot_kde)
+        #self.get_kde_data(print_, plot_kde)
         # dictionary of arrays for subgroup data
         # loop through the keys and add an empty list when the replicate numbers don't match
         # this dataset has 22 KDEs to calculate rather than 24
