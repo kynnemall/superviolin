@@ -2,7 +2,7 @@
 
 ### Superplots for visualizing dense datasets ###
 
-![Current exemplary superplot](https://bitbucket.org/martinkenny/analysis_work/src/master/superplot_v0-2-0.png "Optional title")
+![Current exemplary superplot](superplot_v0-2-0.png "Optional title")
 
 #### To-do list ####
 * Add a palette of pastel colours to make it more palatable
