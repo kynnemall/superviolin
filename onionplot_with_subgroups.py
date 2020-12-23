@@ -49,9 +49,13 @@ class onionplot:
             points = list(np.linspace(max(min_cuts), min(max_cuts), num = 128))
             points = sorted(list(set(min_cuts + points + max_cuts))) 
             for rep in self.unique_reps:
+                print(group, rep)
                 # first point when we catch an empty list caused by uneven rep numbers
                 try:
+                    sub = self.df[(self.df[self.rep] == rep) & (self.df[self.subgroup] == group)]
+                    # line below fails for 0.4, figure out why
                     kde = gaussian_kde(sub[self.y])
+                    # print('No error')
                     kde_points = kde.evaluate(points)
                     # zero the kde points
                     kde_points = kde_points - kde_points.min()
@@ -59,11 +63,8 @@ class onionplot:
                     if print_:
                         print(f"{zeros_present.count(0)} zeroes present already at index {zeros_present.index(0)}")
                     # use min and max to make the kde_points outside that dataset = 0
-                    print('One')
-                    # this fails for 0.4, figure out why
                     idx_min = min_cuts.index(sub[self.y].min())
                     idx_max = max_cuts.index(sub[self.y].max())
-                    print('Two')
                     if idx_min > 0:
                         for p in range(idx_min):
                             kde_points[p] = 0
@@ -72,18 +73,16 @@ class onionplot:
                             kde_points[idx+1] = 0
                     norm_wy.append(kde_points)
                     px.append(points)
+                    # print('No issues')
                 except ValueError:
                     norm_wy.append([])
-                    px.append([])
-            print(f'completed group {group}')
+                    px.append(points)
+                    print('Appending ValueError')
             px = np.array(px)
-            print(px.shape)
             # catch the error when there is an empty list added to the dictionary
-            try:
-                norm_wy = np.array(norm_wy)
-            except:
-                length = max([len(e) for e in norm_wy])
-                norm_wy = [a if len(a) > 0 else np.zeros(length) for a in enumerate(norm_wy) ]
+            length = max([len(e) for e in norm_wy])
+            norm_wy = np.array([a if len(a) > 0 else np.zeros(length) for a in norm_wy])
+            print(norm_wy.shape)
             norm_wy = np.cumsum(norm_wy, axis = 0)
             try:
                 norm_wy = norm_wy / norm_wy.max() # [0,1]
@@ -91,36 +90,6 @@ class onionplot:
                 print(norm_wy)
             self.subgroup_dict[group]['norm_wy'] = norm_wy
             self.subgroup_dict[group]['px'] = px
-            # work out how to append and then insert into the dictionary
-                
-    def check_cutting(self):
-        count = 0
-        gt = 0
-        for i in range(len(self.unique_reps)):
-            zero_count = list(self.w_y[i]).count(0)
-            count += zero_count
-            gt += i * 2
-        if gt == count:
-            print('Cutting worked')
-        else:
-            print(f"Cutting failed. {count} zeros found when there should have been {gt}")
-            for i in range(3):
-                print(onion.w_y[i][:3])
-                print(onion.w_y[i][-3:])
-                
-    def plot_onion(self, total_width = 0.8, linewidth = 2):
-        plt.figure()
-        violin_y = []
-        violin_x = []
-        # mirror x and y values to create a continuous line
-        for i in range(1, self.w_y.shape[0] + 1):
-            reshaped_x = np.append(self.p_x[i-1], np.flipud(self.p_x[i-1]))
-            reshaped_y = np.append(self.norm_wy[i-1], np.flipud(self.norm_wy[i-1]) * -1) * total_width
-            violin_x.append(reshaped_x)
-            violin_y.append(reshaped_y)
-        for i in range(1, self.w_y.shape[0] + 1):
-            i = i * -1
-            plt.fill(violin_y[i], violin_x[i], color = self.colors[i])
     
     def plot_stripes(self, total_width = 0.8, linewidth = 2):
         """
