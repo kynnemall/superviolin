@@ -20,17 +20,17 @@ class onionplot:
         self.rep = rep_col
         self.subgroup = subgroup
         if self.subgroup:
-            self.subgroups = self.df[subgroup].unique()
+            self.subgroups = sorted(self.df[subgroup].unique().tolist())
         self.unique_reps = self.df[self.rep].unique()
         # make sure there's enough colours for each subgroup when instantiating
         self.colors = ['Green','Red','Blue','Pink','Purple']
         # dictionary of arrays for subgroup data
         # loop through the keys and add an empty list when the replicate numbers don't match
         # this dataset has 22 KDEs to calculate rather than 24
-        self.subgroup_dict = dict(zip(self.subgroups, [{'norm_wy' : [], 'px' : []}
-                                                        for i in self.subgroups]))
+        self.subgroup_dict = dict(zip(self.subgroups,
+                                      [{'norm_wy' : [], 'px' : []} for i in self.subgroups])
+                                  )
         self.get_kde_data(print_, plot_kde)
-        # self.plot_stripes()
         self.palette = None
         
     def get_kde_data(self, print_ = False, plot = False):
@@ -45,24 +45,35 @@ class onionplot:
                 max_cuts.append(sub[self.y].max())
             min_cuts = sorted(min_cuts)
             max_cuts = sorted(max_cuts)
+            if print_:
+                print(np.nanmax(min_cuts))
+                print(np.nanmin(max_cuts))
             # make linespace of points from highest_min_cut to lowest_max_cut
-            points = list(np.linspace(max(min_cuts), min(max_cuts), num = 128))
-            points = sorted(list(set(min_cuts + points + max_cuts))) 
+            global points1
+            points1 = list(np.linspace(np.nanmax(min_cuts), np.nanmin(max_cuts), num = 128))
+            points = sorted(list(set(min_cuts + points1 + max_cuts))) 
             for rep in self.unique_reps:
-                print(group, rep)
                 # first point when we catch an empty list caused by uneven rep numbers
                 try:
+                    if print_:
+                        print(sub)
                     sub = self.df[(self.df[self.rep] == rep) & (self.df[self.subgroup] == group)]
                     # line below fails for 0.4, figure out why
                     kde = gaussian_kde(sub[self.y])
-                    # print('No error')
+                    # these kde_points are actual numbers
                     kde_points = kde.evaluate(points)
-                    # zero the kde points
-                    kde_points = kde_points - kde_points.min()
-                    zeros_present = list(kde_points)
                     if print_:
-                        print(f"{zeros_present.count(0)} zeroes present already at index {zeros_present.index(0)}")
+                        print(kde_points)
+                    # zero the kde points (all are nan for 0.4uM)
+                    kde_points = kde_points - np.nanmin(kde_points)
+                    # if print_:
+                    #     print(kde_points)
+                    # zeros_present = list(kde_points)
+                    if print_:
+                        print('No error')
+                        # print(f"{zeros_present.count(0)} zeroes present already at index {zeros_present.index(0)}")
                     # use min and max to make the kde_points outside that dataset = 0
+                    # errors with 0.4uM are caused by the following lines
                     idx_min = min_cuts.index(sub[self.y].min())
                     idx_max = max_cuts.index(sub[self.y].max())
                     if idx_min > 0:
@@ -73,16 +84,17 @@ class onionplot:
                             kde_points[idx+1] = 0
                     norm_wy.append(kde_points)
                     px.append(points)
-                    # print('No issues')
+                    if print_:
+                        print('Complete')
                 except ValueError:
                     norm_wy.append([])
                     px.append(points)
-                    print('Appending ValueError')
+                    if print_:
+                        print('Appending ValueError')
             px = np.array(px)
             # catch the error when there is an empty list added to the dictionary
             length = max([len(e) for e in norm_wy])
             norm_wy = np.array([a if len(a) > 0 else np.zeros(length) for a in norm_wy])
-            print(norm_wy.shape)
             norm_wy = np.cumsum(norm_wy, axis = 0)
             try:
                 norm_wy = norm_wy / norm_wy.max() # [0,1]
@@ -91,32 +103,50 @@ class onionplot:
             self.subgroup_dict[group]['norm_wy'] = norm_wy
             self.subgroup_dict[group]['px'] = px
     
-    def plot_stripes(self, total_width = 0.8, linewidth = 2):
-        """
-        Only norm_wy and p_x used for this function
-        Don't need to evaluate a new KDE, just use the one from the last subarray of w_y
-        DONE: add these distances to p_x to get new x values
-        DONE: calculate new y values based on these distances
-        DONE: use the last array to plot the outline
-        """
-        self.right_sides = np.array([self.norm_wy[-1]*-1 + i*2 for i in self.norm_wy])
+    def _single_subgroup_plot(self, group, axis_point = 0, total_width = 0.8, linewidth = 2):
+        norm_wy = self.subgroup_dict[group]['norm_wy']
+        px = self.subgroup_dict[group]['px']
+        right_sides = np.array([norm_wy[-1]*-1 + i*2 for i in norm_wy])
         # create array of 3 lines which denote the 3 replicates on the plot
         new_wy = []
-        for i,a in enumerate(self.p_x):
+        for i,a in enumerate(px):
             if i == 0:
-                newline = np.append(self.norm_wy[-1]*-1, np.flipud(self.right_sides[i]))
+                newline = np.append(norm_wy[-1]*-1, np.flipud(right_sides[i]))
             else:
-                newline = np.append(self.right_sides[i-1], np.flipud(self.right_sides[i]))
+                newline = np.append(right_sides[i-1], np.flipud(right_sides[i]))
             new_wy.append(newline)
-        self.new_wy = np.array(new_wy)
+        new_wy = np.array(new_wy)
         # use last array to plot the outline
-        outline_y = np.append(self.p_x[-1], np.flipud(self.p_x[-1]))
-        outline_x = np.append(self.norm_wy[-1], np.flipud(self.norm_wy[-1]) * -1) * total_width
-        for i in range(self.norm_wy.shape[0]):
-            reshaped_x = np.append(self.p_x[i-1], np.flipud(self.p_x[i-1]))
-            plt.fill(self.new_wy[i] * total_width, reshaped_x, color = self.colors[i])
+        outline_y = np.append(px[-1], np.flipud(px[-1]))
+        outline_x = np.append(norm_wy[-1], np.flipud(norm_wy[-1]) * -1) * total_width + axis_point
+        for i in range(norm_wy.shape[0]):
+            reshaped_x = np.append(px[i-1], np.flipud(px[i-1]))
+            plt.fill(new_wy[i] * total_width  + axis_point, reshaped_x, color = self.colors[i])
         plt.plot(outline_x, outline_y, color = 'Black', linewidth = linewidth)
+        
+    def plot_subgroups(self, order):
+        ticks = []
+        lbls = []
+        for i,a in enumerate(self.subgroup_dict.keys()):
+            self._single_subgroup_plot(a, i*2)
+            ticks.append(i*2)
+            lbls.append(a)
+            # plot median/mean and error bars as lines
+            median_width = 0.4
+            # calculate the median value for all replicates of either X or Y
+            sub = self.df[self.df[self.x] == a]
+            plt_df = sub.groupby(self.x, as_index = False).agg({self.y : 'median'})
+            mid_val = plt_df[self.y].median()
+            # plot horizontal lines across the column, centered on the tick
+            plt.plot([i*2 - median_width / 2, i*2 + median_width / 2],
+                     [mid_val, mid_val], lw = 1.5, color = 'k')
+        plt.xticks(ticks, lbls)
+        
 
 onion = onionplot(subgroup = 'dose')
-#onion.plot_stripes()
-#plt.ylabel('Fibre alignment')
+# onion.subgroups = [16]
+# print('Debugging')
+# onion.get_kde_data(print_ = True)
+# onion._single_subgroup_plot(0, 1)
+onion.plot_subgroups(order = None)
+# plt.ylabel('Fibre alignment')
