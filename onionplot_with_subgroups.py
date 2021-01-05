@@ -124,22 +124,52 @@ class onionplot:
             plt.fill(new_wy[i] * total_width  + axis_point, reshaped_x, color = self.colors[i])
         plt.plot(outline_x, outline_y, color = 'Black', linewidth = linewidth)
         
-    def plot_subgroups(self, order):
+    def plot_subgroups(self, order = None, centre_val = "mean", middle_vals = "mean",
+                       error_bars = ""):
+        """
+        
+        Parameters
+        ----------
+        order : LIST, optional
+            DESCRIPTION. The default is None.
+        centre_val : STRING, optional
+            DESCRIPTION. Determines where the centre line of the replicates is.
+                The default is "mean". "median" is also an option.
+        middle_vals : STRING, optional
+            DESCRIPTION. Determines whether to use mean or median to measure
+                the centrality of each replicate.
+                The default is "mean". "median" is also an option.
+        error_bars : STRING, optional
+            DESCRIPTION. The default is "".
+
+        Returns
+        -------
+        None.
+
+        """
         ticks = []
         lbls = []
+        # width of the bars
+        median_width = 0.4
         for i,a in enumerate(self.subgroup_dict.keys()):
             self._single_subgroup_plot(a, i*2)
             ticks.append(i*2)
-            lbls.append(a)
-            # plot median/mean and error bars as lines
-            median_width = 0.4
-            # calculate the median value for all replicates of either X or Y
+            lbls.append(a)            
+            # calculate the mean/median value for all replicates of the variable
             sub = self.df[self.df[self.x] == a]
-            plt_df = sub.groupby(self.x, as_index = False).agg({self.y : 'median'})
-            mid_val = plt_df[self.y].median()
+            if middle_vals == "mean":
+                plt_df = sub.groupby(self.x, as_index = False).agg({self.y : 'mean'})
+            else:
+                plt_df = sub.groupby(self.x, as_index = False).agg({self.y : 'median'})
+            if centre_val == 'mean':
+                mid_val = plt_df[self.y].mean()
+            else:
+                mid_val = plt_df[self.y].median()
             # plot horizontal lines across the column, centered on the tick
             plt.plot([i*2 - median_width / 2, i*2 + median_width / 2],
-                     [mid_val, mid_val], lw = 1.5, color = 'k')
+                     [mid_val, mid_val], lw = 2, color = 'k')
+            # plot vertical lines connecting the limits
+            
         plt.xticks(ticks, lbls)
         
 
