@@ -23,7 +23,8 @@ class onionplot:
             self.subgroups = sorted(self.df[subgroup].unique().tolist())
         self.unique_reps = self.df[self.rep].unique()
         # make sure there's enough colours for each subgroup when instantiating
-        self.colors = ['Green','Red','Blue','Pink','Purple']
+        # self.colors = ['Green','Red','Blue','Pink','Purple']
+        self.colors = ['cyan','lightgrey','magenta']
         # dictionary of arrays for subgroup data
         # loop through the keys and add an empty list when the replicate numbers don't match
         # this dataset has 22 KDEs to calculate rather than 24
@@ -125,7 +126,7 @@ class onionplot:
         plt.plot(outline_x, outline_y, color = 'Black', linewidth = linewidth)
         
     def plot_subgroups(self, order = None, centre_val = "mean", middle_vals = "mean",
-                       error_bars = ""):
+                       error_bars = "sd"):
         """
         
         Parameters
@@ -157,26 +158,33 @@ class onionplot:
             lbls.append(a)            
             # calculate the mean/median value for all replicates of the variable
             sub = self.df[self.df[self.x] == a]
+            means = sub.groupby(self.rep, as_index = False).agg({self.y : 'mean'})
             if middle_vals == "mean":
                 plt_df = sub.groupby(self.x, as_index = False).agg({self.y : 'mean'})
             else:
                 plt_df = sub.groupby(self.x, as_index = False).agg({self.y : 'median'})
+            # get mean or median line of the skeleton plot
             if centre_val == 'mean':
                 mid_val = plt_df[self.y].mean()
             else:
                 mid_val = plt_df[self.y].median()
+            # get error bars for the skeleton plot
+            if error_bars == "sd":
+                upper = mid_val + means[self.y].std()
+                lower = mid_val - means[self.y].std()
             # plot horizontal lines across the column, centered on the tick
-            plt.plot([i*2 - median_width / 2, i*2 + median_width / 2],
-                     [mid_val, mid_val], lw = 2, color = 'k')
+            for b in [mid_val, upper, lower]:
+                plt.plot([i*2 - median_width / 2, i*2 + median_width / 2],
+                         [b, b], lw = 2, color = 'k')
             # plot vertical lines connecting the limits
-            
+            plt.plot([i*2, i*2], [lower, upper], lw = 2, color = 'k')  
         plt.xticks(ticks, lbls)
         
-
 onion = onionplot(subgroup = 'dose')
 # onion.subgroups = [16]
 # print('Debugging')
 # onion.get_kde_data(print_ = True)
 # onion._single_subgroup_plot(0, 1)
 onion.plot_subgroups(order = None)
-# plt.ylabel('Fibre alignment')
+plt.ylabel('Fibre alignment')
+plt.xlabel(u"paBBT (\u03bcM)")
