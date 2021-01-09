@@ -31,10 +31,10 @@ class onionplot:
         self.subgroup_dict = dict(zip(self.subgroups,
                                       [{'norm_wy' : [], 'px' : []} for i in self.subgroups])
                                   )
-        self.get_kde_data(print_, plot_kde)
+        self._get_kde_data(print_, plot_kde)
         self.palette = None
         
-    def get_kde_data(self, print_ = False, plot = False):
+    def _get_kde_data(self, print_ = False, plot = False):
         for group in self.subgroups:
             px = []
             norm_wy = []

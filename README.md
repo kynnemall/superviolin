@@ -7,7 +7,7 @@ This work builds upon the superplots suggested by Lord, Velle, Mullins, and Frit
 We propose replacing the underlying beeswarm plot with a modified violinplot while keeping the skeleton plot. The underlying plot consists of an outline violinplot showing the distribution of all of the underlying data . . . *TBC*
 
 #### To-do list ####
-* add statistics to top of plot, make it an option for the user
+* Add statistics to top of plot, make it an option for the user
 * Allow users more control over the final visualization
 * Package into a CLI for people to use
 
