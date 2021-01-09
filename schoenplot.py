@@ -9,7 +9,7 @@ Created on Sat Jan 9 13:49:42 2021
 import os
 import click
 import matplotlib.pyplot as plt
-from plot import superplot
+from schoenplot.plot import superplot
 
 def get_args():
     if "args.txt" not in os.listdir():
