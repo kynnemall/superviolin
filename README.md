@@ -9,7 +9,7 @@ We propose replacing the underlying beeswarm plot with a modified violinplot whi
 #### To-do list ####
 * Add statistics to top of plot, make it an option for the user
 * Allow users more control over the final visualization
-* Package into a CLI for people to use
+* Package into a CLI using Click library
 
 #### Done ####
 * Make it work with conditions AND replicates
