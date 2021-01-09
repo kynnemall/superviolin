@@ -1,15 +1,15 @@
 # IMPORTANT:        Users must change the following 4 arguments before trying to generate the superplot
 # variable to display on the x axis
-x: dose
+x: REPLACE_ME
 
 # variable to display on the y axis
-y: order
+y: REPLACE_ME
 
 # variable used to denote experimental replicates
-replicate_column: replicate
+replicate_column: REPLACE_ME
 
 # csv file or Microsoft Excel file containing data in tidy data format
-filename: practice_data.csv
+filename: REPLACE_ME
 
 
 # The following arguments below may be changed as the user desires

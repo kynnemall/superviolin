@@ -12,14 +12,14 @@ from scipy.stats import gaussian_kde
 
 class superplot:
     
-    def __init__(self, x = 'dose', y = 'order', rep_col = 'replicate',
+    def __init__(self, x = 'dose', y = 'order', replicate_column = 'replicate',
                  filename = 'practice_data.csv', order = None, centre_val = "mean",
                  middle_vals = "mean", error_bars = "sd", total_width = 0.8,
                  linewidth = 2):
         self.df = pd.read_csv(filename)
         self.x = x
         self.y = y
-        self.rep = rep_col
+        self.rep = replicate_column
         self.subgroups = sorted(self.df[self.x].unique().tolist())
         self.unique_reps = self.df[self.rep].unique()
         # make sure there's enough colours for each subgroup when instantiating
@@ -108,6 +108,10 @@ class superplot:
         
     def _plot_subgroups(self, order, centre_val, middle_vals,
                        error_bars, total_width, linewidth):
+        if len(self.subgroups) > 3:
+            plt.figure(figsize = (6, 3))
+        else:
+            plt.figure(figsize = (3, 3))
         ticks = []
         lbls = []
         # width of the bars
@@ -137,7 +141,7 @@ class superplot:
             plt.plot([i*2, i*2], [lower, upper], lw = 2, color = 'k')  
         plt.xticks(ticks, lbls)
 
-testing = True
+testing = False
 if testing:        
     onion = superplot()
     # onion.subgroups = [16]
