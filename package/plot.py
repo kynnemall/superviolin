@@ -12,11 +12,17 @@ from scipy.stats import gaussian_kde
 
 class superplot:
     
-    def __init__(self, x = 'dose', y = 'order', replicate_column = 'replicate',
-                 filename = 'practice_data.csv', order = None, centre_val = "mean",
+    def __init__(self, x = 'drug', y = 'variable', replicate_column = 'replicate',
+                 filename = 'demo_data.csv', order = None, centre_val = "mean",
                  middle_vals = "mean", error_bars = "sd", total_width = 0.8,
-                 linewidth = 2):
-        self.df = pd.read_csv(filename)
+                 linewidth = 2, dataframe = False):
+        if type(dataframe):
+            self.df = dataframe
+        else:
+            if filename.endswith('csv'):
+                self.df = pd.read_csv(filename)
+            else:
+                self.df = pd.read_excel(filename)
         self.x = x
         self.y = y
         self.rep = replicate_column

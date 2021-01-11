@@ -1,0 +1,3 @@
+[console_scripts]
+schoenplot = plot_cli:cli
+

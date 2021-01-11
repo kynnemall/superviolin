@@ -1,0 +1,12 @@
+Metadata-Version: 1.2
+Name: schoenplot
+Version: 0.4
+Summary: Python-based app to make superplots
+Home-page: UNKNOWN
+Author: Martin Kenny
+Maintainer: Martin Kenny
+Maintainer-email: mkenny5@tcd.ie
+License: BSD
+Description: UNKNOWN
+Platform: UNKNOWN
+Requires-Python: >=3.1
