@@ -16,9 +16,8 @@ class superplot:
                  filename = 'demo_data.csv', order = None, centre_val = "mean",
                  middle_vals = "mean", error_bars = "sd", total_width = 0.8,
                  linewidth = 2, dataframe = False):
-        if type(dataframe):
-            self.df = dataframe
-        else:
+        self.df = dataframe
+        if 'bool' in str(type(dataframe)):
             if filename.endswith('csv'):
                 self.df = pd.read_csv(filename)
             else:

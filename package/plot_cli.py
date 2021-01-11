@@ -33,8 +33,6 @@ def get_args(demo = False):
     if demo:
         txt_data = pkgutil.get_data(__name__, "templates/demo_args.txt").decode()
         lines = txt_data.split('\n')
-        for l in lines:
-            click.echo(l)
         arg_dict = process_txt(lines)
         return arg_dict
     else:
@@ -72,7 +70,6 @@ def demo():
     d = get_args(demo = True)
     bytedata = pkgutil.get_data(__name__, "templates/demo_data.csv")
     df = pd.read_csv(io.BytesIO(bytedata))
-    click.echo(type(df))
     superplot(**d, dataframe = df)
     plt.show()
     
