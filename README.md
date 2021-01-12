@@ -8,10 +8,12 @@ We propose replacing the underlying beeswarm plot with a modified violinplot whi
 
 #### To-do list ####
 * Add statistics to top of plot, make it an option for the user
-* Allow users more control over the final visualization
-* Package into a CLI using Click library
+* Make colors part of args.txt
+* Allow users to modify default arguments
 
 #### Done ####
 * Make it work with conditions AND replicates
 * Add a palette of pastel colours to make it more palatable
 * Implement skeleton plot overlay to show replicate statistics
+* Allow users more control over the final visualization
+* Package into a CLI using Click library

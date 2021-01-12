@@ -51,10 +51,10 @@ def cli():
 @cli.command('init', short_help = "Create args.txt in current directory")
 def init():
     txt_data = pkgutil.get_data(__name__, "templates/args.txt").decode()
-    click.echo(txt_data)    
     with open("args.txt", "w") as f:
         f.write(txt_data)
     click.echo('Created args.txt')
+    click.echo('Modify args.txt with your preferences then run "schoenplot plot"')
 
 @cli.command('plot', short_help = "Generate superplot")
 def make_superplot():
@@ -73,3 +73,13 @@ def demo():
     superplot(**d, dataframe = df)
     plt.show()
     
+@cli.command('prefs', short_help = "Change default arguments in args.txt template")
+def prefs():
+    click.echo("TODO")
+    txt_data = pkgutil.get_data(__name__, "templates/demo_args.txt").decode()
+    lines = txt_data.split('\n')
+    arg_dict = process_txt(lines)
+    for i,k in enumerate(arg_dict.keys()):
+        if i > 4:
+            n = input(f"{k}: {arg_dict[k]}, do you want to replace it?\n If not, just press enter\n")
+            click.echo(f"{arg_dict[k]} replaced with {n}")

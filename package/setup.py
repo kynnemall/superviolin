@@ -25,7 +25,6 @@ setup(
       python_requires = ">=3.1",
       install_requires = ["matplotlib", "numpy", "pandas", "scipy", "click"],
       package_data = {'' : ['demo_data.csv',
-                            'demo_data2.csv',
                             'args.txt',
                             'demo_args.txt']
                             },
