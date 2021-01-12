@@ -15,14 +15,23 @@ setup(
       url = "",
       description = "Python-based app to make superplots",
       author = "Martin Kenny",
+      author_email = "mkenny5@tcd.ie",
       maintainer = "Martin Kenny",
       maintainer_email = "mkenny5@tcd.ie",
-      license = "BSD",
       packages = find_packages(),
       entry_points = {
                       'console_scripts': ['schoenplot=plot_cli:cli']
                       },
       python_requires = ">=3.1",
       install_requires = ["matplotlib", "numpy", "pandas", "scipy", "click"],
-      include_package_data = True
+      package_data = {'' : ['demo_data.csv',
+                            'demo_data2.csv',
+                            'args.txt',
+                            'demo_args.txt']
+                            },
+      classifiers = [
+          "Programming Language :: Python :: 3",
+          "License :: OSI Approved :: MIT License",
+          "Operating System :: OS Independent",
+          ],
       )

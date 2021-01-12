@@ -1,9 +1,0 @@
-plot.py
-plot_cli.py
-setup.py
-schoenplot.egg-info/PKG-INFO
-schoenplot.egg-info/SOURCES.txt
-schoenplot.egg-info/dependency_links.txt
-schoenplot.egg-info/entry_points.txt
-schoenplot.egg-info/requires.txt
-schoenplot.egg-info/top_level.txt
