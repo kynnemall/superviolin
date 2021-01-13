@@ -22,14 +22,14 @@ setup(
       entry_points = {
                       'console_scripts': ['schoenplot=plot_cli:cli']
                       },
-      python_requires = ">=3.1",
+      python_requires = ">=3.6",
       install_requires = ["matplotlib", "numpy", "pandas", "scipy", "click"],
       package_data = {'' : ['demo_data.csv',
                             'args.txt',
                             'demo_args.txt']
                             },
       classifiers = [
-          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.6",
           "License :: OSI Approved :: MIT License",
           "Operating System :: OS Independent",
           ],

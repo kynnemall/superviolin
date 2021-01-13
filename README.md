@@ -1,6 +1,6 @@
 ### Superplots for visualizing dense datasets ###
 
-![Current exemplary superplot](superplot_v0-4.png "Optional title")
+![Current exemplary superplot](superplot_v0-5.png "Optional title")
 
 This work builds upon the superplots suggested by Lord, Velle, Mullins, and Fritz-Laylin in ["SuperPlots: Communicating reproducibility and variability in cell biology"](https://doi.org/10.1083/jcb.202001064) (2020). Mean or median values from experimental replicates which rely on large numbers of cells have a certain variability which is lost when a single statistic is chosen to represent these data. This variability is hidden when standard plots are used to display the data. The superplots put forward in the aforementioned paper display individual replicate variability using beeswarm plots (replicate data) overlaid with skeleton plots (overall statistics). While the beeswarm plot emphasizes the variability between replicates and gives an indication of the distribution of the underlying data, it requires more effort on the reader's part to be understood than a simple boxplot.
 
