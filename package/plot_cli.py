@@ -93,6 +93,9 @@ def demo():
 @cli.command('prefs', short_help = "Change default arguments in args.txt template")
 def prefs():
     user_data_args = make_user_data_dir()
+    # link below shows how to add new info to the file
+    # overwrite is not an option. Edit code to reflect this
+    # https://stackoverflow.com/questions/41667617/how-to-overwrite-a-file-correctly
     with open(user_data_args, "r") as default:
         txt_data = default.read()
     lines = txt_data.split('\n')
@@ -104,7 +107,7 @@ def prefs():
             if len(n) == 0:
                 click.echo(f"{k} unchanged")
             else:
-                new = "f{k}: {n}"
+                new = f"{k}: {n}"
                 txt_data = txt_data.replace(old, new)
                 click.echo(f"{arg_dict[k]} replaced with {n}")
     with open(user_data_args, "w") as f:
