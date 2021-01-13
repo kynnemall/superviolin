@@ -23,7 +23,14 @@ setup(
                       'console_scripts': ['schoenplot=plot_cli:cli']
                       },
       python_requires = ">=3.6",
-      install_requires = ["matplotlib", "numpy", "pandas", "scipy", "click"],
+      install_requires = [
+          "appdirs",
+          "click",
+          "matplotlib",
+          "numpy",
+          "pandas",
+          "scipy"
+          ],
       package_data = {'' : ['demo_data.csv',
                             'args.txt',
                             'demo_args.txt']
