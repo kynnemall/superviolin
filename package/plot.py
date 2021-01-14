@@ -5,7 +5,6 @@ Created on Thu Dec 17 14:51:42 2020
 @author: Martin Kenny
 """
 
-import click
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -17,30 +16,58 @@ class superplot:
                  filename = 'demo_data.csv', order = "None", centre_val = "mean",
                  middle_vals = "mean", error_bars = "sd", total_width = 0.8,
                  linewidth = 2, colours = 'cyan, lightgrey, magenta', dataframe = False):
+        
+        errors = []
+        # catch errors
         self.df = dataframe
         if 'bool' in str(type(dataframe)):
             if filename.endswith('csv'):
                 self.df = pd.read_csv(filename)
-            else:
+            elif ".xl" in filename:
                 self.df = pd.read_excel(filename)
+            else:
+                errors.append("Incorrect filename")
+        else:
+            errors.append("No data supplied")
         self.x = x
         self.y = y
         self.rep = replicate_column
-        self.subgroups = sorted(self.df[self.x].unique().tolist())
-        self.unique_reps = list(self.df[self.rep].unique())
+        missing_cols = []
+        for col in [x, y, replicate_column]:
+            if col not in self.df.columns:
+                missing_cols.append(col)
+        if len(missing_cols) != 0:
+            if len(missing_cols) == 1:
+                errors.append("Variable not found: " + missing_cols[0])
+            else:
+                errors.append("Missing variables: " + ', '.join(missing_cols))
+        if x in self.df.columns:
+            self.subgroups = sorted(self.df[self.x].unique().tolist())
+            if order != "None":
+                self.subgroups = "placeholder until order option is implemented"
+            else:
+                print("This option is not yet implemented")
+            # dictionary of arrays for subgroup data
+            # loop through the keys and add an empty list when the replicate numbers don't match
+            self.subgroup_dict = dict(
+                zip(self.subgroups, [{'norm_wy' : [], 'px' : []} for i in self.subgroups])
+                )
+        if replicate_column in self.df.columns:
+            self.unique_reps = list(self.df[self.rep].unique())
         # make sure there's enough colours for each subgroup when instantiating
-        self.colours = colours.split(', ')
-        # dictionary of arrays for subgroup data
-        # loop through the keys and add an empty list when the replicate numbers don't match
-        self.subgroup_dict = dict(zip(self.subgroups,
-                                      [{'norm_wy' : [], 'px' : []} for i in self.subgroups])
-                                  )
-        self._get_kde_data()
-        if order != "None":
-            click.echo("Assign order in args.txt")
-            self.subgroups = [self.unique_reps]
-        self._plot_subgroups(self.subgroups, centre_val, middle_vals, error_bars,
-                             total_width, linewidth)
+        self.colours = colours.split(', ')        
+        # if no errors exist
+        if len(errors) == 0:
+            self._get_kde_data()
+            self._plot_subgroups(self.subgroups, centre_val, middle_vals, error_bars,
+                                 total_width, linewidth)
+        else:
+            if len(errors) == 1:
+                print("Caught 1 error")
+            else:
+                print(f"Caught {len(errors)} errors")
+            for i,e in enumerate(errors):
+                print(f"\t{i+1}. {e}")
         
     def _get_kde_data(self):
         for group in self.subgroups:
@@ -112,6 +139,7 @@ class superplot:
             reshaped_x = np.append(px[i-1], np.flipud(px[i-1]))
             plt.fill(new_wy[i] * total_width  + axis_point, reshaped_x, color = self.colours[i])
         plt.plot(outline_x, outline_y, color = 'Black', linewidth = linewidth)
+        print("TODO: plot the mean or median depending based on middle_vals")
         
     def _plot_subgroups(self, order, centre_val, middle_vals,
                        error_bars, total_width, linewidth):
@@ -148,12 +176,13 @@ class superplot:
             plt.plot([i*2, i*2], [lower, upper], lw = 2, color = 'k')  
         plt.xticks(ticks, lbls)
 
-testing = False
-if testing:        
-    onion = superplot()
-    # onion.subgroups = [16]
+testing = True
+if testing:
+    import os
+    os.chdir('templates')
+    x = superplot(x = "na", y = 'q', replicate_column='non')
+    # x.subgroups = [16]
     # print('Debugging')
-    # onion.get_kde_data(print_ = True)
-    # onion._single_subgroup_plot(0, 1)
-    plt.ylabel('Fibre alignment')
-    plt.xlabel(u"paBBT (\u03bcM)")
+    # x.get_kde_data(print_ = True)
+    # x._single_subgroup_plot(0, 1)
+
