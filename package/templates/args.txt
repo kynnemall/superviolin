@@ -14,20 +14,25 @@ filename: REPLACE_ME
 
 # The following arguments below may be changed as the user desires
 
-# order of the experimental conditions from left to right
+# Order of the experimental conditions from left to right on the x axis
 order: None
 
-# use mean (default) or median to position. Default: mean
+# Use mean (default) or median to position. Default: mean
 centre_val: mean
 
-# use mean or median from each experimental replicate. Used to calculate the centre_val. Default: median
+# Use mean or median from each experimental replicate. Used to calculate the centre_val. Default: median
 middle_vals: median
 
-# standard deviation (sd, default) or confidence interval if using median
+# Standard deviation (sd, default) or confidence interval if using median
 error_bars: sd
 
-# width of each violinplot. Default value: 0.8
+# Width of each violinplot. Should be less than 1.0. Default value: 0.8
 total_width: 0.8
 
-# width of the black lines around each violinplot and the skeleton plot. Default value: 2
-linewidth: 2
+# Width of the black lines around each violinplot and the skeleton plot. Default value: 2.0
+linewidth: 2.0
+
+# colours used for each individual replicate. List of potential colours available
+# at https://matplotlib.org/3.1.0/gallery/color/named_colors.html
+# under the "CSS Colors" heading
+colours: cyan, lightgrey, magenta

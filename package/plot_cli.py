@@ -74,6 +74,7 @@ def cli():
 @cli.command('init', short_help = "Create args.txt in current directory")
 def init():
     user_data_args = make_user_data_dir()
+    click.echo(user_data_args)
     with open(user_data_args, "r") as default:
         txt_data = default.read()
     with open("args.txt", "w") as f:

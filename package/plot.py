@@ -5,6 +5,7 @@ Created on Thu Dec 17 14:51:42 2020
 @author: Martin Kenny
 """
 
+import click
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,9 +14,9 @@ from scipy.stats import gaussian_kde
 class superplot:
     
     def __init__(self, x = 'drug', y = 'variable', replicate_column = 'replicate',
-                 filename = 'demo_data.csv', order = None, centre_val = "mean",
+                 filename = 'demo_data.csv', order = "None", centre_val = "mean",
                  middle_vals = "mean", error_bars = "sd", total_width = 0.8,
-                 linewidth = 2, dataframe = False):
+                 linewidth = 2, colours = 'cyan, lightgrey, magenta', dataframe = False):
         self.df = dataframe
         if 'bool' in str(type(dataframe)):
             if filename.endswith('csv'):
@@ -26,17 +27,18 @@ class superplot:
         self.y = y
         self.rep = replicate_column
         self.subgroups = sorted(self.df[self.x].unique().tolist())
-        self.unique_reps = self.df[self.rep].unique()
+        self.unique_reps = list(self.df[self.rep].unique())
         # make sure there's enough colours for each subgroup when instantiating
-        self.colors = ['cyan','lightgrey','magenta']
+        self.colours = colours.split(', ')
         # dictionary of arrays for subgroup data
         # loop through the keys and add an empty list when the replicate numbers don't match
         self.subgroup_dict = dict(zip(self.subgroups,
                                       [{'norm_wy' : [], 'px' : []} for i in self.subgroups])
                                   )
         self._get_kde_data()
-        if order != None:
-            self.subgroups = order
+        if order != "None":
+            click.echo("Assign order in args.txt")
+            self.subgroups = [self.unique_reps]
         self._plot_subgroups(self.subgroups, centre_val, middle_vals, error_bars,
                              total_width, linewidth)
         
@@ -108,7 +110,7 @@ class superplot:
         outline_x = np.append(norm_wy[-1], np.flipud(norm_wy[-1]) * -1) * total_width + axis_point
         for i in range(norm_wy.shape[0]):
             reshaped_x = np.append(px[i-1], np.flipud(px[i-1]))
-            plt.fill(new_wy[i] * total_width  + axis_point, reshaped_x, color = self.colors[i])
+            plt.fill(new_wy[i] * total_width  + axis_point, reshaped_x, color = self.colours[i])
         plt.plot(outline_x, outline_y, color = 'Black', linewidth = linewidth)
         
     def _plot_subgroups(self, order, centre_val, middle_vals,
