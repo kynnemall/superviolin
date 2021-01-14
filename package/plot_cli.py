@@ -20,22 +20,28 @@ def process_txt(txt):
     lines = [i.rstrip() for i in txt if not i.startswith("#")]
     lines = [i for i in lines if len(i) > 0]
     for l in lines:
-        key_val = l.split(": ")
+        k, v = l.replace('\n', '').split(": ")
         try:
-            arg_dict[key_val[0]] = float(key_val[1])
+            arg_dict[k] = float(v)
         except:
-            if key_val[1] == 'None':
-                arg_dict[key_val[0]] = None
+            if k == 'None':
+                arg_dict[k] = None
             else:
-                arg_dict[key_val[0]] = key_val[1]
+                arg_dict[k] = v
     return arg_dict
 
-def get_args(demo = False):
+def get_args(prefs = False, demo = False):
     if demo:
         txt_data = pkgutil.get_data(__name__, "templates/demo_args.txt").decode()
         lines = txt_data.split('\n')
         arg_dict = process_txt(lines)
         return arg_dict
+    elif prefs:
+        user_data_args = make_user_data_dir()
+        with open(user_data_args, "r") as f:
+            lines = f.readlines()
+            arg_dict = process_txt(lines)
+            return arg_dict
     else:
         if "args.txt" not in os.listdir():
             return False
@@ -53,10 +59,12 @@ def make_user_data_dir():
     user_data_args = os.path.join(dirs.user_data_dir, "args.txt")
     if not os.path.exists(dirs.user_data_dir):
         os.makedirs(dirs.user_data_dir, mode = 0o777)
+        click.echo("Making directory")
     if not os.path.isfile(user_data_args):        
         txt_data = pkgutil.get_data(__name__, "templates/args.txt").decode()
         with open(user_data_args, "w") as f:
             f.write(txt_data)
+        click.echo("Making default args.txt file")
     return user_data_args
 
 @click.group()
@@ -93,23 +101,24 @@ def demo():
 @cli.command('prefs', short_help = "Change default arguments in args.txt template")
 def prefs():
     user_data_args = make_user_data_dir()
-    # link below shows how to add new info to the file
-    # overwrite is not an option. Edit code to reflect this
-    # https://stackoverflow.com/questions/41667617/how-to-overwrite-a-file-correctly
-    with open(user_data_args, "r") as default:
-        txt_data = default.read()
-    lines = txt_data.split('\n')
-    arg_dict = process_txt(lines)
-    for i,k in enumerate(arg_dict.keys()):
-        if i > 4:
-            old = f"{k}: {arg_dict[k]}"
-            n = input(f"{old}, do you want to replace it?\n If not, just press enter\n")
-            if len(n) == 0:
-                click.echo(f"{k} unchanged")
-            else:
-                new = f"{k}: {n}"
-                txt_data = txt_data.replace(old, new)
-                click.echo(f"{arg_dict[k]} replaced with {n}")
-    with open(user_data_args, "w") as f:
-        f.write(txt_data)
+    with open(user_data_args, 'r+') as f:
+        click.echo(user_data_args)
+        lines = f.readlines()
+        arg_dict = get_args(prefs = True)
+        for i,l in enumerate(lines):
+            if not l.startswith('#') and ':' in l and 'REPLACE' not in l:            
+                k,v = l.split(': ')
+                old = f"{k}: {arg_dict[k]}"
+                n = input(f"{old}, do you want to replace it?\n If not, just press enter\n")
+                if len(n) == 0:
+                    click.echo(f"{k} unchanged")
+                else:
+                    new = f"{k}: {n}"
+                    click.echo(f"{arg_dict[k]} replaced with {n}")
+                    lines[i] = new
+        f.seek(0)
+        txt = ''.join(lines)
+        f.write(txt)
     click.echo("\nNew settings successfully stored")
+
+    

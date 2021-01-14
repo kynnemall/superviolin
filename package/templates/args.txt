@@ -12,7 +12,7 @@ replicate_column: REPLACE_ME
 filename: REPLACE_ME
 
 
-# The following arguments may be changed as the user desires
+# The following arguments below may be changed as the user desires
 
 # order of the experimental conditions from left to right
 order: None
@@ -23,11 +23,11 @@ centre_val: mean
 # use mean or median from each experimental replicate. Used to calculate the centre_val. Default: median
 middle_vals: median
 
-# standard deviation (sd, default) or confidence interval (ci) if using median
+# standard deviation (sd, default) or confidence interval if using median
 error_bars: sd
 
 # width of each violinplot. Default value: 0.8
 total_width: 0.8
 
-# width of the black lines around each violinplot and the skeleton plot. Default value: 2.0
-linewidth: 2.0
+# width of the black lines around each violinplot and the skeleton plot. Default value: 2
+linewidth: 2
