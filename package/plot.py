@@ -115,7 +115,8 @@ class superplot:
             self.subgroup_dict[group]['norm_wy'] = norm_wy
             self.subgroup_dict[group]['px'] = px
     
-    def _single_subgroup_plot(self, group, axis_point, total_width=0.8, linewidth=2):
+    def _single_subgroup_plot(self, group, axis_point, mid_df, middle_vals="mean",
+                              total_width=0.8, linewidth=2):
         norm_wy = self.subgroup_dict[group]['norm_wy']
         px = self.subgroup_dict[group]['px']
         right_sides = np.array([norm_wy[-1]*-1 + i*2 for i in norm_wy])
@@ -131,30 +132,42 @@ class superplot:
         # use last array to plot the outline
         outline_y = np.append(px[-1], np.flipud(px[-1]))
         outline_x = np.append(norm_wy[-1], np.flipud(norm_wy[-1]) * -1) * total_width + axis_point
-        for i in range(norm_wy.shape[0]):
+        for i,a in enumerate(self.unique_reps):
             reshaped_x = np.append(px[i-1], np.flipud(px[i-1]))
-            plt.fill(new_wy[i] * total_width  + axis_point, reshaped_x, color = self.colours[i])
-        plt.plot(outline_x, outline_y, color = 'Black', linewidth = linewidth)
-        print("TODO: plot the mean or median depending based on middle_vals")
+            mid_val = mid_df[mid_df[self.rep] == a][self.y].values
+            reshaped_y = new_wy[i] * total_width  + axis_point
+            plt.fill(reshaped_y, reshaped_x, color=self.colours[i])
+            # get the mid_val each replicate and find it in reshaped_x
+            # then get corresponding point in reshaped_x to plot the points
+            if mid_val.size > 0: # account for empty mid_val
+                arr = reshaped_x[np.logical_not(np.isnan(reshaped_x))]
+                nearest = self.find_nearest(arr, mid_val[0])
+                # find the index of nearest in new_wy
+                idx = np.where(reshaped_x == nearest)
+                x_vals = reshaped_y[idx]
+                x_val = x_vals[0] + ((x_vals[1] - x_vals[0]) / 2)
+                plt.scatter(x_val, mid_val[0], facecolors='none', edgecolors='Black', marker='o')
+        plt.plot(outline_x, outline_y, color='Black', linewidth=linewidth)
         
     def _plot_subgroups(self, centre_val, middle_vals,
                        error_bars, total_width, linewidth):
         if len(self.subgroups) > 3:
-            plt.figure(figsize = (6, 3))
+            plt.figure(figsize=(6, 3))
         else:
-            plt.figure(figsize = (3, 3))
+            plt.figure(figsize=(3, 3))
         ticks = []
         lbls = []
         # width of the bars
         median_width = 0.4
         for i,a in enumerate(self.subgroups):
-            self._single_subgroup_plot(a, i*2, total_width = total_width)
             ticks.append(i*2)
             lbls.append(a)            
             # calculate the mean/median value for all replicates of the variable
             sub = self.df[self.df[self.x] == a]
-            means = sub.groupby(self.rep, as_index = False).agg({self.y : 'mean'})
-            plt_df = sub.groupby(self.x, as_index = False).agg({self.y : middle_vals})
+            means = sub.groupby(self.rep, as_index=False).agg({self.y : centre_val})
+            plt_df = sub.groupby(self.x, as_index=False).agg({self.y : middle_vals})
+            self._single_subgroup_plot(a, i*2, mid_df=means, middle_vals=middle_vals, 
+                                       total_width=total_width)
             # get mean or median line of the skeleton plot
             if centre_val == 'mean':
                 mid_val = plt_df[self.y].mean()
@@ -169,16 +182,22 @@ class superplot:
             # plot horizontal lines across the column, centered on the tick
             for b in [mid_val, upper, lower]:
                 plt.plot([i*2 - median_width / 2, i*2 + median_width / 2],
-                         [b, b], lw = linewidth, color = 'k')
+                         [b, b], lw=linewidth, color='k')
             # plot vertical lines connecting the limits
-            plt.plot([i*2, i*2], [lower, upper], lw = 2, color = 'k')  
+            plt.plot([i*2, i*2], [lower, upper], lw=2, color='k')  
         plt.xticks(ticks, lbls)
+        
+    def find_nearest(self, array, value):
+        array = np.asarray(array)
+        idx = (np.abs(array - value)).argmin()
+        return array[idx]
 
-#testing = False
-#if testing:
-#    import os
-#    os.chdir('templates')
-#    test = superplot(x="na", y='q', replicate_column='non')
+testing = True
+if testing:
+    import os
+    os.chdir('templates')
+    test = superplot()
+#    plt.close()
     # test.subgroups = [16]
     # print('Debugging')
     # test.get_kde_data(print_ = True)
