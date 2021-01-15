@@ -10,13 +10,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 
-class superplot:
-    
-    def __init__(self, x = 'drug', y = 'variable', replicate_column = 'replicate',
-                 filename = 'demo_data.csv', order = "None", centre_val = "mean",
-                 middle_vals = "mean", error_bars = "sd", total_width = 0.8,
-                 linewidth = 2, colours = 'cyan, lightgrey, magenta', dataframe = False):
-        
+class superplot:    
+    def __init__(self, x='drug', y='variable', replicate_column='replicate',
+                 filename='demo_data.csv', order="None", centre_val="mean",
+                 middle_vals="mean", error_bars="sd", total_width=0.8,
+                 linewidth=2, colours='cyan, lightgrey, magenta', dataframe=False):
         errors = []
         # catch errors
         self.df = dataframe
@@ -26,9 +24,7 @@ class superplot:
             elif ".xl" in filename:
                 self.df = pd.read_excel(filename)
             else:
-                errors.append("Incorrect filename")
-        else:
-            errors.append("No data supplied")
+                errors.append("Incorrect filename or unsupported filetype")
         self.x = x
         self.y = y
         self.rep = replicate_column
@@ -42,7 +38,7 @@ class superplot:
             else:
                 errors.append("Missing variables: " + ', '.join(missing_cols))
         if x in self.df.columns:
-            self.subgroups = sorted(self.df[self.x].unique().tolist())
+            self.subgroups = tuple(sorted(self.df[self.x].unique().tolist()))
             if order != "None":
                 self.subgroups = "placeholder until order option is implemented"
             else:
@@ -53,13 +49,13 @@ class superplot:
                 zip(self.subgroups, [{'norm_wy' : [], 'px' : []} for i in self.subgroups])
                 )
         if replicate_column in self.df.columns:
-            self.unique_reps = list(self.df[self.rep].unique())
+            self.unique_reps = tuple(self.df[self.rep].unique())
         # make sure there's enough colours for each subgroup when instantiating
-        self.colours = colours.split(', ')        
+        self.colours = tuple(colours.split(', '))
         # if no errors exist
         if len(errors) == 0:
             self._get_kde_data()
-            self._plot_subgroups(self.subgroups, centre_val, middle_vals, error_bars,
+            self._plot_subgroups(centre_val, middle_vals, error_bars,
                                  total_width, linewidth)
         else:
             if len(errors) == 1:
@@ -68,7 +64,7 @@ class superplot:
                 print(f"Caught {len(errors)} errors")
             for i,e in enumerate(errors):
                 print(f"\t{i+1}. {e}")
-        
+
     def _get_kde_data(self):
         for group in self.subgroups:
             px = []
@@ -119,13 +115,13 @@ class superplot:
             self.subgroup_dict[group]['norm_wy'] = norm_wy
             self.subgroup_dict[group]['px'] = px
     
-    def _single_subgroup_plot(self, group, axis_point, total_width = 0.8, linewidth = 2):
+    def _single_subgroup_plot(self, group, axis_point, total_width=0.8, linewidth=2):
         norm_wy = self.subgroup_dict[group]['norm_wy']
         px = self.subgroup_dict[group]['px']
         right_sides = np.array([norm_wy[-1]*-1 + i*2 for i in norm_wy])
         # create array of 3 lines which denote the 3 replicates on the plot
         new_wy = []
-        for i,a in enumerate(px):
+        for i in range(len(px)):
             if i == 0:
                 newline = np.append(norm_wy[-1]*-1, np.flipud(right_sides[i]))
             else:
@@ -141,7 +137,7 @@ class superplot:
         plt.plot(outline_x, outline_y, color = 'Black', linewidth = linewidth)
         print("TODO: plot the mean or median depending based on middle_vals")
         
-    def _plot_subgroups(self, order, centre_val, middle_vals,
+    def _plot_subgroups(self, centre_val, middle_vals,
                        error_bars, total_width, linewidth):
         if len(self.subgroups) > 3:
             plt.figure(figsize = (6, 3))
@@ -152,7 +148,7 @@ class superplot:
         # width of the bars
         median_width = 0.4
         for i,a in enumerate(self.subgroups):
-            self._single_subgroup_plot(a, i*2)
+            self._single_subgroup_plot(a, i*2, total_width = total_width)
             ticks.append(i*2)
             lbls.append(a)            
             # calculate the mean/median value for all replicates of the variable
@@ -168,6 +164,8 @@ class superplot:
             if error_bars == "sd":
                 upper = mid_val + means[self.y].std()
                 lower = mid_val - means[self.y].std()
+            elif error_bars == "ci":
+                print("TODO: implement this")
             # plot horizontal lines across the column, centered on the tick
             for b in [mid_val, upper, lower]:
                 plt.plot([i*2 - median_width / 2, i*2 + median_width / 2],
@@ -176,13 +174,13 @@ class superplot:
             plt.plot([i*2, i*2], [lower, upper], lw = 2, color = 'k')  
         plt.xticks(ticks, lbls)
 
-testing = True
-if testing:
-    import os
-    os.chdir('templates')
-    x = superplot(x = "na", y = 'q', replicate_column='non')
-    # x.subgroups = [16]
+#testing = False
+#if testing:
+#    import os
+#    os.chdir('templates')
+#    test = superplot(x="na", y='q', replicate_column='non')
+    # test.subgroups = [16]
     # print('Debugging')
-    # x.get_kde_data(print_ = True)
-    # x._single_subgroup_plot(0, 1)
+    # test.get_kde_data(print_ = True)
+    # test._single_subgroup_plot(0, 1)
 

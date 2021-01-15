@@ -8,12 +8,12 @@ Created on Sat Jan 9 13:49:42 2021
 
 import io
 import os
-import click
 import pkgutil
+import click
 import pandas as pd
 import matplotlib.pyplot as plt
-from plot import superplot
 from appdirs import AppDirs
+from plot import superplot
 
 def process_txt(txt):
     arg_dict = {}
@@ -23,20 +23,20 @@ def process_txt(txt):
         k, v = l.replace('\n', '').split(": ")
         try:
             arg_dict[k] = float(v)
-        except:
+        except ValueError:
             if k == 'None':
                 arg_dict[k] = None
             else:
                 arg_dict[k] = v
     return arg_dict
 
-def get_args(prefs = False, demo = False):
-    if demo:
+def get_args(preferences=False, demonstration=False):
+    if demonstration:
         txt_data = pkgutil.get_data(__name__, "templates/demo_args.txt").decode()
         lines = txt_data.split('\n')
         arg_dict = process_txt(lines)
         return arg_dict
-    elif prefs:
+    elif preferences:
         user_data_args = make_user_data_dir()
         with open(user_data_args, "r") as f:
             lines = f.readlines()
@@ -58,7 +58,7 @@ def make_user_data_dir():
     dirs = AppDirs(_name, _author, _version)
     user_data_args = os.path.join(dirs.user_data_dir, "args.txt")
     if not os.path.exists(dirs.user_data_dir):
-        os.makedirs(dirs.user_data_dir, mode = 0o777)
+        os.makedirs(dirs.user_data_dir, mode=0o777)
         click.echo("Making directory")
     if not os.path.isfile(user_data_args):        
         txt_data = pkgutil.get_data(__name__, "templates/args.txt").decode()
@@ -69,9 +69,9 @@ def make_user_data_dir():
 
 @click.group()
 def cli():
-    pass    
+    pass
 
-@cli.command('init', short_help = "Create args.txt in current directory")
+@cli.command('init', short_help="Create args.txt in current directory")
 def init():
     user_data_args = make_user_data_dir()
     click.echo(user_data_args)
@@ -82,7 +82,7 @@ def init():
     click.echo('Created args.txt')
     click.echo('Modify args.txt with your preferences then run "schoenplot plot"')
 
-@cli.command('plot', short_help = "Generate superplot")
+@cli.command('plot', short_help="Generate superplot")
 def make_superplot():
     d = get_args()
     if not d:
@@ -91,27 +91,27 @@ def make_superplot():
         superplot(**d)
         plt.show()
 
-@cli.command('demo', short_help = "Make demo superplot")
+@cli.command('demo', short_help="Make demo superplot")
 def demo():
-    d = get_args(demo = True)
+    d = get_args(demonstration=True)
     bytedata = pkgutil.get_data(__name__, "templates/demo_data.csv")
     df = pd.read_csv(io.BytesIO(bytedata))
     superplot(**d, dataframe = df)
     plt.show()
     
-@cli.command('prefs', short_help = "Change default arguments in args.txt template")
+@cli.command('prefs', short_help="Change default arguments in args.txt template")
 def prefs():
     user_data_args = make_user_data_dir()
     with open(user_data_args, 'r+') as f:
         click.echo(user_data_args)
         lines = f.readlines()
-        arg_dict = get_args(prefs = True)
+        arg_dict = get_args(preferences=True)
         for i,l in enumerate(lines):
-            if not l.startswith('#') and ':' in l and 'REPLACE' not in l:            
-                k,v = l.split(': ')
+            if not l.startswith('#') and ':' in l and 'REPLACE' not in l:
+                k, _ = l.split(': ')
                 old = f"{k}: {arg_dict[k]}"
                 n = input(f"{old}, do you want to replace it?\n If not, just press enter\n")
-                if len(n) == 0:
+                if not bool(n):
                     click.echo(f"{k} unchanged")
                 else:
                     new = f"{k}: {n}"
@@ -121,5 +121,3 @@ def prefs():
         txt = ''.join(lines)
         f.write(txt)
     click.echo("\nNew settings successfully stored")
-
-    
