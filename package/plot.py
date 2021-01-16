@@ -146,7 +146,8 @@ class superplot:
                 idx = np.where(reshaped_x == nearest)
                 x_vals = reshaped_y[idx]
                 x_val = x_vals[0] + ((x_vals[1] - x_vals[0]) / 2)
-                plt.scatter(x_val, mid_val[0], facecolors='none', edgecolors='Black', marker='o')
+                plt.scatter(x_val, mid_val[0], facecolors='none', edgecolors='Black',
+                            zorder=2, marker='o')
         plt.plot(outline_x, outline_y, color='Black', linewidth=linewidth)
         
     def _plot_subgroups(self, centre_val, middle_vals,
