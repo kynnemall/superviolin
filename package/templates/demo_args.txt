@@ -23,11 +23,16 @@ centre_val: mean
 # use mean or median from each experimental replicate. Used to calculate the centre_val. Default: median
 middle_vals: median
 
-# standard deviation (sd, default) or confidence interval if using median
-error_bars: sd
+# standard deviation (SD, default) or 95% confidence interval (CI) if using median
+error_bars: SD
 
 # width of each violinplot. Default value: 0.8
 total_width: 0.8
 
 # width of the black lines around each violinplot and the skeleton plot. Default value: 2
 linewidth: 2
+
+# colours used for each individual replicate. List of potential colours available
+# at https://matplotlib.org/3.1.0/gallery/color/named_colors.html
+# under the "CSS Colors" heading
+colours: cyan, lightgrey, magenta

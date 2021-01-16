@@ -8,12 +8,12 @@ Created on Thu Dec 17 14:51:42 2020
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from scipy.stats import gaussian_kde
+from scipy.stats import gaussian_kde, norm
 
 class superplot:    
     def __init__(self, x='drug', y='variable', replicate_column='replicate',
                  filename='demo_data.csv', order="None", centre_val="mean",
-                 middle_vals="mean", error_bars="sd", total_width=0.8,
+                 middle_vals="mean", error_bars="SD", total_width=0.8,
                  linewidth=2, colours='cyan, lightgrey, magenta', dataframe=False):
         errors = []
         # catch errors
@@ -115,7 +115,7 @@ class superplot:
             self.subgroup_dict[group]['norm_wy'] = norm_wy
             self.subgroup_dict[group]['px'] = px
     
-    def _single_subgroup_plot(self, group, axis_point, mid_df, middle_vals="mean",
+    def _single_subgroup_plot(self, group, axis_point, mid_df, #middle_vals="mean",
                               total_width=0.8, linewidth=2):
         norm_wy = self.subgroup_dict[group]['norm_wy']
         px = self.subgroup_dict[group]['px']
@@ -142,7 +142,8 @@ class superplot:
             if mid_val.size > 0: # account for empty mid_val
                 arr = reshaped_x[np.logical_not(np.isnan(reshaped_x))]
                 nearest = self.find_nearest(arr, mid_val[0])
-                # find the index of nearest in new_wy
+                # find the indices of nearest in new_wy
+                # there will be two because new_wy is a loop
                 idx = np.where(reshaped_x == nearest)
                 x_vals = reshaped_y[idx]
                 x_val = x_vals[0] + ((x_vals[1] - x_vals[0]) / 2)
@@ -167,7 +168,7 @@ class superplot:
             sub = self.df[self.df[self.x] == a]
             means = sub.groupby(self.rep, as_index=False).agg({self.y : centre_val})
             plt_df = sub.groupby(self.x, as_index=False).agg({self.y : middle_vals})
-            self._single_subgroup_plot(a, i*2, mid_df=means, middle_vals=middle_vals, 
+            self._single_subgroup_plot(a, i*2, mid_df=means,# middle_vals=middle_vals, 
                                        total_width=total_width)
             # get mean or median line of the skeleton plot
             if centre_val == 'mean':
@@ -175,11 +176,12 @@ class superplot:
             else:
                 mid_val = plt_df[self.y].median()
             # get error bars for the skeleton plot
-            if error_bars == "sd":
+            if error_bars == "SD":
                 upper = mid_val + means[self.y].std()
                 lower = mid_val - means[self.y].std()
-            elif error_bars == "ci":
-                print("TODO: implement this")
+            else:
+                lower,upper = norm.interval(0.95, loc=means[self.y].mean(),
+                                      scale=means[self.y].std())
             # plot horizontal lines across the column, centered on the tick
             for b in [mid_val, upper, lower]:
                 plt.plot([i*2 - median_width / 2, i*2 + median_width / 2],
@@ -193,14 +195,14 @@ class superplot:
         idx = (np.abs(array - value)).argmin()
         return array[idx]
 
-testing = True
-if testing:
-    import os
-    os.chdir('templates')
-    test = superplot()
-#    plt.close()
-    # test.subgroups = [16]
-    # print('Debugging')
-    # test.get_kde_data(print_ = True)
-    # test._single_subgroup_plot(0, 1)
+# testing = True
+# if testing:
+#     import os
+#     os.chdir('templates')
+#     test = superplot(error_bars="CI")
+#     plt.close()
+#     test.subgroups = [16]
+#     print('Debugging')
+#     test.get_kde_data(print_ = True)
+#     test._single_subgroup_plot(0, 1)
 

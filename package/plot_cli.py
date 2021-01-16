@@ -40,15 +40,15 @@ def get_args(preferences=False, demonstration=False):
         user_data_args = make_user_data_dir()
         with open(user_data_args, "r") as f:
             lines = f.readlines()
-            arg_dict = process_txt(lines)
-            return arg_dict
+        arg_dict = process_txt(lines)
+        return arg_dict
     else:
         if "args.txt" not in os.listdir():
             return False
         else:
             with open("args.txt", "r") as f:
                 lines = f.readlines()
-                arg_dict = process_txt(lines)
+            arg_dict = process_txt(lines)
         return arg_dict
     
 def make_user_data_dir():
@@ -96,7 +96,7 @@ def demo():
     d = get_args(demonstration=True)
     bytedata = pkgutil.get_data(__name__, "templates/demo_data.csv")
     df = pd.read_csv(io.BytesIO(bytedata))
-    superplot(**d, dataframe = df)
+    superplot(**d, dataframe=df)
     plt.show()
     
 @cli.command('prefs', short_help="Change default arguments in args.txt template")
