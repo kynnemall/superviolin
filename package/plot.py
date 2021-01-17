@@ -195,11 +195,11 @@ class superplot:
         idx = (np.abs(array - value)).argmin()
         return array[idx]
 
-testing = True
-if testing:
-    import os
-    os.chdir('templates')
-    test = superplot(error_bars="CI")
+# testing = True
+# if testing:
+#     import os
+#     os.chdir('templates')
+#     test = superplot(error_bars="CI")
 #     plt.close()
 #     test.subgroups = [16]
 #     print('Debugging')
