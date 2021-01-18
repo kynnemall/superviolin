@@ -34,7 +34,7 @@ linewidth: 2
 
 # colours used for each individual replicate. List of potential colours available
 # at https://matplotlib.org/3.1.0/gallery/color/named_colors.html
-# colour maps at https://matplotlib.org/3.1.1/tutorials/colors/colormaps.html
-# under the "CSS Colors" heading
-colours: cyan, lightgrey, magenta
-colours: GnBu
+# under the "CSS Colors" heading. Separate colours by ', '
+# alternatively, use a colour map from
+# https://matplotlib.org/3.1.1/tutorials/colors/colormaps.html
+cmap: GnBu

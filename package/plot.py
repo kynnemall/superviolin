@@ -18,7 +18,7 @@ class superplot:
     def __init__(self, x='drug', y='variable', replicate_column='replicate',
                  filename='demo_data.csv', order="None", centre_val="mean",
                  middle_vals="mean", error_bars="SD", total_width=0.8,
-                 linewidth=2, colors='cyan, lightgrey, magenta', dataframe=False):
+                 linewidth=2, cmap='GnBu', dataframe=False):
         errors = []
         # catch errors
         self.df = dataframe
@@ -55,7 +55,13 @@ class superplot:
         if replicate_column in self.df.columns:
             self.unique_reps = tuple(self.df[self.rep].unique())
         # make sure there's enough colours for each subgroup when instantiating
-        self.colours = tuple(colours.split(', '))
+        if ',' in cmap:
+            self.colours = tuple(cmap.split(', '))
+        else:
+            self.cm = plt.get_cmap(cmap)
+            self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.subgroups))]
+        if len(self.colours) < len(self.unique_reps):
+            errors.append("Not enough colours for each replicate")
         # if no errors exist
         if len(errors) == 0:
             self._get_kde_data()
@@ -189,7 +195,7 @@ class superplot:
             plt.plot([i*2 - median_width / 1.5, i*2 + median_width / 1.5],
                          [mid_val, mid_val], lw=linewidth, color='k')
             for b in [upper, lower]:
-                plt.plot([i*2 - median_width / 3, i*2 + median_width / 3],
+                plt.plot([i*2 - median_width / 4.5, i*2 + median_width / 4.5],
                          [b, b], lw=linewidth, color='k')
             # plot vertical lines connecting the limits
             plt.plot([i*2, i*2], [lower, upper], lw=2, color='k')  
@@ -200,16 +206,15 @@ class superplot:
         idx = (np.abs(array - value)).argmin()
         return array[idx]
 
-testing = True
-if testing:
-    import os
-    os.chdir('templates')
-    test = superplot(error_bars="CI")
-    plt.xlabel('example')
-    plt.ylabel('example')
+# testing = True
+# if testing:
+#     import os
+#     os.chdir('templates')
+#     test = superplot(error_bars="CI")
+#     plt.xlabel('example')
+#     plt.ylabel('example')
 #     plt.close()
 #     test.subgroups = [16]
 #     print('Debugging')
 #     test.get_kde_data(print_ = True)
 #     test._single_subgroup_plot(0, 1)
-
