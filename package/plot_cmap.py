@@ -18,7 +18,7 @@ class superplot:
     def __init__(self, x='drug', y='variable', replicate_column='replicate',
                  filename='demo_data.csv', order="None", centre_val="mean",
                  middle_vals="mean", error_bars="SD", total_width=0.8,
-                 linewidth=2, colors='cyan, lightgrey, magenta', dataframe=False):
+                 linewidth=2, cmap='GnBu', dataframe=False):
         errors = []
         # catch errors
         self.df = dataframe
@@ -55,7 +55,8 @@ class superplot:
         if replicate_column in self.df.columns:
             self.unique_reps = tuple(self.df[self.rep].unique())
         # make sure there's enough colours for each subgroup when instantiating
-        self.colours = tuple(colours.split(', '))
+        cm = plt.get_cmap(cmap)
+        self.colours = [cm(i / len(self.subgroups)) for i in range(len(self.subgroups))]
         # if no errors exist
         if len(errors) == 0:
             self._get_kde_data()
