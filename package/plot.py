@@ -59,8 +59,10 @@ class superplot:
             self.colours = tuple(cmap.split(', '))
         else:
             self.cm = plt.get_cmap(cmap)
-            self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.subgroups))]
+            self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.unique_reps))]
         if len(self.colours) < len(self.unique_reps):
+            print(len(self.colours))
+            print(len(self.unique_reps))
             errors.append("Not enough colours for each replicate")
         # if no errors exist
         if len(errors) == 0:
@@ -206,11 +208,11 @@ class superplot:
         idx = (np.abs(array - value)).argmin()
         return array[idx]
 
-# testing = True
-# if testing:
-#     import os
-#     os.chdir('templates')
-#     test = superplot(error_bars="CI")
+#testing = True
+#if testing:
+#    import os
+#    os.chdir('templates')
+#    test = superplot(filename='temp.csv')
 #     plt.xlabel('example')
 #     plt.ylabel('example')
 #     plt.close()
