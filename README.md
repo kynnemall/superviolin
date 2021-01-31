@@ -9,6 +9,8 @@ We propose replacing the underlying beeswarm plot with a modified violinplot whi
 #### To-do list ####
 * Add statistics to top of plot, make it an option for the user
 * Make it idiotproof i.e. create error messages when an argument is invalid
+* Reformat dict to use numpy structured arrays instead (save memory)
+* Re-evaluate histogram stacking implementation
 
 #### Done ####
 * Make it work with conditions AND replicates
