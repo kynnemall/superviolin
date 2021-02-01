@@ -7,9 +7,10 @@ Created on Thu Dec 17 14:51:42 2020
 
 import numpy as np
 import pandas as pd
+import scikit_posthocs as sp
 import matplotlib.pyplot as plt
 from matplotlib import rcParams as params
-from scipy.stats import gaussian_kde, norm
+from scipy.stats import gaussian_kde, norm , kruskal, f_oneway
 params['xtick.labelsize'] = 8
 params['ytick.labelsize'] = 8
 params['axes.labelsize'] = 10
@@ -209,6 +210,14 @@ class superplot:
         array = np.asarray(array)
         idx = (np.abs(array - value)).argmin()
         return array[idx]
+    
+    def statistics(self):
+        normal = True
+        if normal:
+            means = 'something'
+        else:
+            pass
+        return means
 
 testing = True
 if testing:
@@ -218,3 +227,4 @@ if testing:
     os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
     test = superplot(replicate_column='rep',
             filename='20210126_6_replicates.csv')
+#    data = test.statistics()

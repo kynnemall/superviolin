@@ -29,8 +29,8 @@ error_bars: SD
 # width of each violinplot. Default value: 0.8
 total_width: 0.8
 
-# width of the black lines around each violinplot and the skeleton plot. Default value: 2
-linewidth: 2
+# width of the black lines around each violinplot and the skeleton plot. Default value: 1
+linewidth: 1
 
 # colours used for each individual replicate. List of potential colours available
 # at https://matplotlib.org/3.1.0/gallery/color/named_colors.html

@@ -34,7 +34,7 @@ class superplot:
         self.x = x
         self.y = y
         self.rep = replicate_column
-        self.df = self.df[(self.df[x] == 6.4) | (self.df[x] == 40)]
+#        self.df = self.df[(self.df[x] == 6.4) | (self.df[x] == 40)]
         missing_cols = []
         for col in [x, y, replicate_column]:
             if col not in self.df.columns:
@@ -168,10 +168,11 @@ class superplot:
         
     def _plot_subgroups(self, centre_val, middle_vals,
                        error_bars, total_width, linewidth):
-        width = 4
-        height = 4
+#        width = 4
+#        height = 2
+        width = 1 + len(self.subgroups) / 2
+        height = 5 / 2.54
         plt.figure(figsize=(width, height))
-        plt.subplot(211)
         ticks = []
         lbls = []
         # width of the bars
@@ -208,9 +209,11 @@ class superplot:
         plt.xticks(ticks, lbls)
         
     def beeswarm_plot(self, total_width, linewidth):
-        plt.subplot(212)
 #        self.df[self.x] = self.df[self.x].map({6.4:0, 40:2})
-        sns.swarmplot(x = self.x, y = self.y, data = self.df, hue = self.rep)
+        width = 1 + len(self.subgroups) / 2
+        height = 5 / 2.54
+        plt.figure(figsize=(width, height))
+        sns.swarmplot(x = self.x, y = self.y, data = self.df, hue = self.rep, size = 2)
         ticks = []
         lbls = []
         # width of the bars
@@ -235,6 +238,7 @@ class superplot:
             # plot vertical lines connecting the limits
             plt.plot([i, i], [lower, upper], lw=2, color='k',zorder=10) 
         plt.xticks(ticks, lbls)
+        plt.xlabel('')
         
     def find_nearest(self, array, value):
         array = np.asarray(array)
