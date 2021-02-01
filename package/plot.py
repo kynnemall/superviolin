@@ -129,6 +129,8 @@ class superplot:
     
     def _single_subgroup_plot(self, group, axis_point, mid_df, #middle_vals="mean",
                               total_width=0.8, linewidth=2):
+        scatter_sizes = [42, 33, 24, 15]
+        scatter_size = scatter_sizes[len(self.unique_reps) - 3]
         norm_wy = self.subgroup_dict[group]['norm_wy']
         px = self.subgroup_dict[group]['px']
         right_sides = np.array([norm_wy[-1]*-1 + i*2 for i in norm_wy])
@@ -160,7 +162,7 @@ class superplot:
                 x_vals = reshaped_y[idx]
                 x_val = x_vals[0] + ((x_vals[1] - x_vals[0]) / 2)
                 plt.scatter(x_val, mid_val[0], facecolors='none', edgecolors='Black',
-                            zorder=2, marker='o', s=42)
+                            zorder=2, marker='o', s=scatter_size)
         plt.plot(outline_x, outline_y, color='Black', linewidth=linewidth)
         
     def _plot_subgroups(self, centre_val, middle_vals,
@@ -208,15 +210,11 @@ class superplot:
         idx = (np.abs(array - value)).argmin()
         return array[idx]
 
-#testing = True
-#if testing:
-#    import os
+testing = True
+if testing:
+    import os
 #    os.chdir('templates')
 #    test = superplot(filename='temp.csv')
-#     plt.xlabel('example')
-#     plt.ylabel('example')
-#     plt.close()
-#     test.subgroups = [16]
-#     print('Debugging')
-#     test.get_kde_data(print_ = True)
-#     test._single_subgroup_plot(0, 1)
+    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
+    test = superplot(replicate_column='rep',
+            filename='20210126_6_replicates.csv')
