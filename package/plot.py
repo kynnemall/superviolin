@@ -10,7 +10,7 @@ import pandas as pd
 import scikit_posthocs as sp
 import matplotlib.pyplot as plt
 from matplotlib import rcParams as params
-from scipy.stats import gaussian_kde, norm , kruskal, f_oneway
+from scipy.stats import gaussian_kde, norm, kruskal, f_oneway
 params['xtick.labelsize'] = 8
 params['ytick.labelsize'] = 8
 params['axes.labelsize'] = 10
@@ -225,6 +225,7 @@ if testing:
 #    os.chdir('templates')
 #    test = superplot(filename='temp.csv')
     os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
-    test = superplot(replicate_column='rep',
-            filename='20210126_6_replicates.csv')
+    test = superplot(x='group', replicate_column='rep',
+            filename='testing.csv')
+#    plt.close('all')
 #    data = test.statistics()
