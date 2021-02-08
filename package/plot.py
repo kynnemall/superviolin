@@ -11,17 +11,19 @@ import scikit_posthocs as sp
 import matplotlib.pyplot as plt
 from matplotlib import rcParams as params
 from scipy.stats import gaussian_kde, norm, kruskal, f_oneway
+from scipy.stats import shapiro, mannwhitneyu, ttest_ind
 params['xtick.labelsize'] = 8
 params['ytick.labelsize'] = 8
-params['axes.labelsize'] = 10
+params['axes.labelsize'] = 9
 
 class superplot:    
     def __init__(self, x='drug', y='variable', replicate_column='replicate',
                  filename='demo_data.csv', order="None", centre_val="mean",
                  middle_vals="mean", error_bars="SD", total_width=0.8,
-                 linewidth=2, cmap='GnBu', dataframe=False):
+                 linewidth=1, cmap='GnBu', dataframe=False):
         errors = []
-        # catch errors
+        # check filetype
+        # will fail if filename spelled incorrectly
         self.df = dataframe
         if 'bool' in str(type(dataframe)):
             if filename.endswith('csv'):
@@ -55,17 +57,18 @@ class superplot:
                 )
         if replicate_column in self.df.columns:
             self.unique_reps = tuple(self.df[self.rep].unique())
-        # make sure there's enough colours for each subgroup when instantiating
-        if ',' in cmap:
-            self.colours = tuple(cmap.split(', '))
-        else:
-            self.cm = plt.get_cmap(cmap)
-            self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.unique_reps))]
-        if len(self.colours) < len(self.unique_reps):
-            print(len(self.colours))
-            print(len(self.unique_reps))
-            errors.append("Not enough colours for each replicate")
-        # if no errors exist
+            # make sure there's enough colours for each subgroup when instantiating
+            if ',' in cmap:
+                self.colours = tuple(cmap.split(', '))
+            else:
+                self.cm = plt.get_cmap(cmap)
+                self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.unique_reps))]
+            if len(self.colours) < len(self.unique_reps):
+                print(len(self.colours))
+                print(len(self.unique_reps))
+                errors.append("Not enough colours for each replicate")
+            
+        # if no errors exist, create the superplot. Otherwise, report errors
         if len(errors) == 0:
             self._get_kde_data()
             self._plot_subgroups(centre_val, middle_vals, error_bars,
@@ -80,58 +83,69 @@ class superplot:
 
     def _get_kde_data(self):
         for group in self.subgroups:
+            print(group)
             px = []
             norm_wy = []
             min_cuts = []
             max_cuts = []
+            
+            # get limits for fitting the kde 
             for rep in self.unique_reps:
-                sub = self.df[(self.df[self.rep] == rep) & (self.df[self.x] == group)]
-                min_cuts.append(sub[self.y].min())
-                max_cuts.append(sub[self.y].max())
+                sub = self.df[(self.df[self.rep] == rep) & (self.df[self.x] == group)][self.y]
+                min_cuts.append(sub.min())
+                max_cuts.append(sub.max())
             min_cuts = sorted(min_cuts)
             max_cuts = sorted(max_cuts)
             # make linespace of points from highest_min_cut to lowest_max_cut
             points1 = list(np.linspace(np.nanmax(min_cuts), np.nanmin(max_cuts), num = 128))
             points = sorted(list(set(min_cuts + points1 + max_cuts))) 
             for rep in self.unique_reps:
-                # first point when we catch an empty list caused by uneven rep numbers
+                print(rep)
+                # first point to catch an empty list caused by uneven rep numbers
                 try:
-                    sub = self.df[(self.df[self.rep] == rep) & (self.df[self.x] == group)]
-                    kde = gaussian_kde(sub[self.y])
-                    # these kde_points are actual numbers
+                    sub = self.df[(self.df[self.rep] == rep) & (self.df[self.x] == group)][self.y]
+                    arr = np.array(sub)
+                    # remove nan or inf values which could cause a kde ValueError
+                    arr = arr[~(np.isnan(arr))]
+                    kde = gaussian_kde(arr)
                     kde_points = kde.evaluate(points)
                     kde_points = kde_points - np.nanmin(kde_points)
                     # use min and max to make the kde_points outside that dataset = 0
-                    # errors with 0.4uM are caused by the following lines
-                    idx_min = min_cuts.index(sub[self.y].min())
-                    idx_max = max_cuts.index(sub[self.y].max())
+                    idx_min = min_cuts.index(arr.min())
+                    idx_max = max_cuts.index(arr.max())
                     if idx_min > 0:
                         for p in range(idx_min):
                             kde_points[p] = 0
                     for idx in range(idx_max - len(max_cuts), 0):
                         if idx_max - len(max_cuts) != -1:
                             kde_points[idx+1] = 0
+                    kde_points /= len(arr)
                     norm_wy.append(kde_points)
                     px.append(points)
                 except ValueError:
+                    print('fail')
                     norm_wy.append([])
                     px.append(points)
             px = np.array(px)
             # catch the error when there is an empty list added to the dictionary
             length = max([len(e) for e in norm_wy])
+            # rescale norm_wy for display purposes
             norm_wy = np.array([a if len(a) > 0 else np.zeros(length) for a in norm_wy])
             norm_wy = np.cumsum(norm_wy, axis = 0)
             try:
                 norm_wy = norm_wy / norm_wy.max() # [0,1]
             except ValueError:
                 print(norm_wy)
+            # update the dictionary with the normalized data and corresponding x points
             self.subgroup_dict[group]['norm_wy'] = norm_wy
             self.subgroup_dict[group]['px'] = px
     
-    def _single_subgroup_plot(self, group, axis_point, mid_df, #middle_vals="mean",
-                              total_width=0.8, linewidth=2):
+    def _single_subgroup_plot(self, group, axis_point, mid_df,
+                              total_width=0.8, linewidth=1):
+        # select scatter size based on number of replicates
         scatter_sizes = [42, 33, 24, 15]
         scatter_size = scatter_sizes[len(self.unique_reps) - 3]
+        
         norm_wy = self.subgroup_dict[group]['norm_wy']
         px = self.subgroup_dict[group]['px']
         right_sides = np.array([norm_wy[-1]*-1 + i*2 for i in norm_wy])
@@ -182,8 +196,7 @@ class superplot:
             sub = self.df[self.df[self.x] == a]
             means = sub.groupby(self.rep, as_index=False).agg({self.y : centre_val})
             plt_df = sub.groupby(self.x, as_index=False).agg({self.y : middle_vals})
-            self._single_subgroup_plot(a, i*2, mid_df=means,# middle_vals=middle_vals, 
-                                       total_width=total_width)
+            self._single_subgroup_plot(a, i*2, mid_df=means, total_width=total_width)
             # get mean or median line of the skeleton plot
             if centre_val == 'mean':
                 mid_val = plt_df[self.y].mean()
@@ -211,21 +224,67 @@ class superplot:
         idx = (np.abs(array - value)).argmin()
         return array[idx]
     
-    def statistics(self):
-        normal = True
-        if normal:
-            means = 'something'
+    def statistics(self, centre_val='mean'):
+        """
+        1. Get central values for statistics
+        2. Check normality
+        3. Check for more than 2 groups
+        4. Generate statistics
+        5. Plot the statistics if only 2 or 3 groups to compare
+        """
+        means = self.df.groupby([self.rep, self.x], as_index=False).agg({self.y : centre_val})
+        normal = self._normality(means)
+        data = [list(means[means[self.x] == i][self.y]) for i in means[self.x].unique()]
+        if len(self.subgroups) > 2:
+            # compare more than 2 groups
+            if normal:
+                stat, p = f_oneway(*data)
+                # use tukey to compare all groups with Bonferroni correction
+                posthoc = sp.posthoc_tukey(means, self.y, self.x)
+                print(f"1-way ANOVA p value: {p}")
+            else:
+                stat, p = kruskal(*data)
+                posthoc = sp.posthoc_mannwhitney(means, self.y, self.x, p_adjust='bonferroni')
+                print(f"Kruskal-Wallis p value: {p}")
+            # save statistics to file
+            posthoc.to_csv('posthoc_statistics.txt')
+            print("Posthoc statistics saved to txt file")
         else:
+            # compare only 2 groups
+            if normal:
+                stat, p = ttest_ind(data[0], data[1])
+            else:
+                stat, p = mannwhitneyu(data[0], data[1])
+            # save statistics to file
+        # plot statistics if 3 or less groups
+        if len(self.subgroups) <= 3:
             pass
-        return means
+    
+    def _normality(self, data):
+        lst = []
+        for group in self.subgroups:
+            group_var = data[data[self.x] == group][self.y]
+            stat, p = shapiro(group_var)
+            lst.append(p)
+        normal = [1 if i > 0.05 else 0 for i in lst]
+        if np.mean(normal) > 0.65:
+            return True
+        else:
+            return False
 
 testing = True
 if testing:
     import os
 #    os.chdir('templates')
-#    test = superplot(filename='temp.csv')
-    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
-    test = superplot(x='group', replicate_column='rep',
-            filename='testing.csv')
-#    plt.close('all')
-#    data = test.statistics()
+#    test = superplot(filename='demo_data.csv')
+#    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
+#    test = superplot(x='drug', replicate_column='rep',
+#            filename='20210126_6_replicates.csv')
+    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
+    os.chdir('Single reps paBBT fg')
+    # bug with dose = 6.4 for this dataset, occurs in _get_kde_dta
+    # failed in the main try-except statement
+    # fails when defining the kde variable:
+    # ValueError: array must not contain infs or NaNs
+    test = superplot(x='dose',y='order',replicate_column='replicate',
+                     filename='All_paBBT_fg_adhesion_nodules.csv')
