@@ -15,6 +15,8 @@ from scipy.stats import shapiro, mannwhitneyu, ttest_ind
 params['xtick.labelsize'] = 8
 params['ytick.labelsize'] = 8
 params['axes.labelsize'] = 9
+params['axes.spines.right'] = False
+params['axes.spines.top'] = False
 
 class superplot:    
     def __init__(self, x='drug', y='variable', replicate_column='replicate',
@@ -48,8 +50,6 @@ class superplot:
             self.subgroups = tuple(sorted(self.df[self.x].unique().tolist()))
             if order != "None":
                 self.subgroups = "placeholder until order option is implemented"
-            else:
-                print("This option is not yet implemented")
             # dictionary of arrays for subgroup data
             # loop through the keys and add an empty list when the replicate numbers don't match
             self.subgroup_dict = dict(
@@ -83,7 +83,6 @@ class superplot:
 
     def _get_kde_data(self):
         for group in self.subgroups:
-            print(group)
             px = []
             norm_wy = []
             min_cuts = []
@@ -100,7 +99,6 @@ class superplot:
             points1 = list(np.linspace(np.nanmax(min_cuts), np.nanmin(max_cuts), num = 128))
             points = sorted(list(set(min_cuts + points1 + max_cuts))) 
             for rep in self.unique_reps:
-                print(rep)
                 # first point to catch an empty list caused by uneven rep numbers
                 try:
                     sub = self.df[(self.df[self.rep] == rep) & (self.df[self.x] == group)][self.y]
@@ -123,7 +121,6 @@ class superplot:
                     norm_wy.append(kde_points)
                     px.append(points)
                 except ValueError:
-                    print('fail')
                     norm_wy.append([])
                     px.append(points)
             px = np.array(px)
@@ -242,10 +239,12 @@ class superplot:
                 # use tukey to compare all groups with Bonferroni correction
                 posthoc = sp.posthoc_tukey(means, self.y, self.x)
                 print(f"1-way ANOVA p value: {p}")
+                print('Tukey posthoc tests conducted')
             else:
                 stat, p = kruskal(*data)
                 posthoc = sp.posthoc_mannwhitney(means, self.y, self.x, p_adjust='bonferroni')
                 print(f"Kruskal-Wallis p value: {p}")
+                print('Mann-Whitney posthoc tests conducted with Bonferroni correction')
             # save statistics to file
             posthoc.to_csv('posthoc_statistics.txt')
             print("Posthoc statistics saved to txt file")
@@ -253,12 +252,39 @@ class superplot:
             # compare only 2 groups
             if normal:
                 stat, p = ttest_ind(data[0], data[1])
+                if p < 0.0001:
+                    print(f"Independent t-test p value: {p:.2e}")
+                else:
+                    print(f"Independent t-test p value: {p:.4f}")
             else:
                 stat, p = mannwhitneyu(data[0], data[1])
-            # save statistics to file
+                if p < 0.0001:
+                    print(f"Mann-Whitney p value: {p:.2e}")
+                else:
+                    print(f"Mann-Whitney p value: {p:.4f}")
         # plot statistics if 3 or less groups
-        if len(self.subgroups) <= 3:
+        # get max y value of the data
+        ax = plt.gca()
+        low, high = ax.get_ylim()
+        span = high - low
+        increment = span * 0.03 # add high to get the new y value
+        if len(self.subgroups) == 2:
+            x1, x2 = 0, 2
+            y = increment + high
+            h = y + increment
+            plt.plot([x1, x1, x2, x2], [y, h, h, y], lw=1, c='k')
+            plt.text((x1+x2)*.5, h, f"P = {p:.4f}", ha='center', va='bottom', color='k')
+            plt.ylim((low, high+increment*10))
+        elif len(self.subgroups) == 3:
             pass
+        """
+        Code used in Superplots paper to generate stats on the plot
+        x1, x2 = 0, 1
+        # combined['Speed'].max() == 55; 2 is 3.6% of 55
+        y, h, col = combined['Speed'].max() + 2, 2, 'k'
+        plt.plot([x1, x1, x2, x2], [y, y+h, y+h, y], lw=1.5, c=col)
+        plt.text((x1+x2)*.5, y+h*2, f"P = {P_value}", ha='center', va='bottom', color=col)
+        """
     
     def _normality(self, data):
         lst = []
@@ -275,16 +301,17 @@ class superplot:
 testing = True
 if testing:
     import os
-#    os.chdir('templates')
-#    test = superplot(filename='demo_data.csv')
+    os.chdir('templates')
+    test = superplot(filename='demo_data.csv')
+    test.statistics()
 #    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
 #    test = superplot(x='drug', replicate_column='rep',
 #            filename='20210126_6_replicates.csv')
-    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
-    os.chdir('Single reps paBBT fg')
+#    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
+#    os.chdir('Single reps paBBT fg')
     # bug with dose = 6.4 for this dataset, occurs in _get_kde_dta
     # failed in the main try-except statement
     # fails when defining the kde variable:
     # ValueError: array must not contain infs or NaNs
-    test = superplot(x='dose',y='order',replicate_column='replicate',
-                     filename='All_paBBT_fg_adhesion_nodules.csv')
+#    test = superplot(x='dose',y='order',replicate_column='replicate',
+#                     filename='All_paBBT_fg_adhesion_nodules.csv')
