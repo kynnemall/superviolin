@@ -73,6 +73,7 @@ class superplot:
             self._get_kde_data()
             self._plot_subgroups(centre_val, middle_vals, error_bars,
                                  total_width, linewidth)
+            self.statistics()
         else:
             if len(errors) == 1:
                 print("Caught 1 error")
@@ -141,7 +142,8 @@ class superplot:
                               total_width=0.8, linewidth=1):
         # select scatter size based on number of replicates
         scatter_sizes = [29, 24, 19, 14]
-        scatter_size = scatter_sizes[len(self.unique_reps) - 3]
+        num = 0 if len(self.unique_reps) <= 3 else len(self.unique_reps) - 3
+        scatter_size = scatter_sizes[num]
         
         norm_wy = self.subgroup_dict[group]['norm_wy']
         px = self.subgroup_dict[group]['px']
@@ -238,30 +240,30 @@ class superplot:
                 stat, p = f_oneway(*data)
                 # use tukey to compare all groups with Bonferroni correction
                 posthoc = sp.posthoc_tukey(means, self.y, self.x)
-                print(f"1-way ANOVA p value: {p:.3f}")
+                print(f"One-way ANOVA P-value: {p:.3f}")
                 print('Tukey posthoc tests conducted')
             else:
                 stat, p = kruskal(*data)
                 posthoc = sp.posthoc_mannwhitney(means, self.y, self.x, p_adjust='bonferroni')
-                print(f"Kruskal-Wallis p value: {p:.3f}")
+                print(f"Kruskal-Wallis P-value: {p:.3f}")
                 print('Mann-Whitney posthoc tests conducted with Bonferroni correction')
             # save statistics to file
-            posthoc.to_csv('posthoc_statistics.txt')
+            posthoc.to_csv('posthoc_statistics.txt', sep='\t')
             print("Posthoc statistics saved to txt file")
         else:
             # compare only 2 groups
             if normal:
                 stat, p = ttest_ind(data[0], data[1])
                 if p < 0.0001:
-                    print(f"Independent t-test p value: {p:.2e}")
+                    print(f"Independent t-test P-value: {p:.2e}")
                 else:
-                    print(f"Independent t-test p value: {p:.3f}")
+                    print(f"Independent t-test P-value: {p:.3f}")
             else:
                 stat, p = mannwhitneyu(data[0], data[1])
                 if p < 0.0001:
-                    print(f"Mann-Whitney p value: {p:.2e}")
+                    print(f"Mann-Whitney P-value: {p:.2e}")
                 else:
-                    print(f"Mann-Whitney p value: {p:.3f}")
+                    print(f"Mann-Whitney P-value: {p:.3f}")
                     
         # plot statistics if only 2 or 3 groups
         ax = plt.gca()
@@ -325,4 +327,3 @@ if testing:
 #    os.chdir('Single reps paBBT fg')
 #    test = superplot(x='dose',y='order',replicate_column='replicate',
 #                     filename='All_paBBT_fg_adhesion_nodules.csv')
-    test.statistics()
