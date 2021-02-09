@@ -140,7 +140,7 @@ class superplot:
     def _single_subgroup_plot(self, group, axis_point, mid_df,
                               total_width=0.8, linewidth=1):
         # select scatter size based on number of replicates
-        scatter_sizes = [42, 33, 24, 15]
+        scatter_sizes = [29, 24, 19, 14]
         scatter_size = scatter_sizes[len(self.unique_reps) - 3]
         
         norm_wy = self.subgroup_dict[group]['norm_wy']
@@ -213,7 +213,7 @@ class superplot:
                 plt.plot([i*2 - median_width / 4.5, i*2 + median_width / 4.5],
                          [b, b], lw=linewidth, color='k')
             # plot vertical lines connecting the limits
-            plt.plot([i*2, i*2], [lower, upper], lw=2, color='k')  
+            plt.plot([i*2, i*2], [lower, upper], lw=linewidth, color='k')  
         plt.xticks(ticks, lbls)
         
     def find_nearest(self, array, value):
@@ -262,8 +262,8 @@ class superplot:
                     print(f"Mann-Whitney p value: {p:.2e}")
                 else:
                     print(f"Mann-Whitney p value: {p:.3f}")
+                    
         # plot statistics if only 2 or 3 groups
-        # get max y value of the data
         ax = plt.gca()
         low, high = ax.get_ylim()
         span = high - low
@@ -278,19 +278,27 @@ class superplot:
             plt.ylim((low, high+increment*10))
         elif len(self.subgroups) == 3:
             labels = [i._text for i in ax.get_xticklabels()]
-            pairs = ((0, 1), (0, 2), (1, 2))
-            y = increment + high
-            for i, pair in enumerate(pairs, 1):
-                x1, x2 = [i * 2 for i in pair]
+            pairs = ((0, 1), (1, 2), (0, 2))
+            y = increment + high # increment = 3% of the range of the y-axis
+            text_loc = ['center', 'center', 'center']
+            for i,pair in enumerate(pairs):
+                # get posthoc statistic for each comparison
                 condition1, condition2 = [labels[i] for i in pair]
                 pval = posthoc.loc[condition1, condition2]
-                h = y + increment*i
-                text_h = y + increment * (i*2)
-                plt.plot([x1, x1, x2, x2], [y, h, h, y], lw=1, c='k')
-                plt.text((x1+x2)*.5, text_h, f"P = {pval:.3f}", ha='center',
-                         va='bottom', color='k', fontsize=8)
-                plt.ylim((low, high+increment*10))
-                y *= 1.03
+                x1, x2 = [i * 2 for i in pair]
+                # calculate values for lines and locating p-values on plot
+                h = y * 1.02
+                y += increment * 5
+                # plot the posthoc p-values and lines
+                plt.plot([x1, x1, x2, x2], [h, y, y, h], lw=1, c='Black')
+                # workaround to deal with comparing first and last groups
+#                if i == 1:
+#                    plt.text((x1+x2)/2.15, y, f"P = {pval:.3f}", ha=text_loc[i],
+#                             va='bottom', color='Black', fontsize=8)
+#                else:
+                plt.text((x1+x2)/2, y, f"P = {pval:.3f}", ha=text_loc[i],
+                         va='bottom', color='Black', fontsize=8)
+            plt.ylim((low, low + span * 1.5))
     
     def _normality(self, data):
         lst = []
@@ -310,8 +318,9 @@ if testing:
 #    os.chdir('templates')
 #    test = superplot(filename='demo_data.csv')
     os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
-    test = superplot(x='drug', replicate_column='rep',
-            filename='3reps_3groups.csv')
+#    test = superplot(x='group', replicate_column='reps', filename='doubled_data.csv')
+    test = superplot(x='drug', replicate_column='rep', filename='3reps_3groups.csv')
+    ylabel = 'Spreading area ($\mu$$m^2$)'
 #    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
 #    os.chdir('Single reps paBBT fg')
 #    test = superplot(x='dose',y='order',replicate_column='replicate',
