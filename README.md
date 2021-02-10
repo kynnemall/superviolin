@@ -6,6 +6,8 @@ This work builds upon the SuperPlots proposed by Lord et al. (2020) in "SuperPlo
 
 #### To-do list ####
 * Optimize scatterpoint size
+* Write manual for non-programmers
+* Include docstrings for functions
 
 #### Done ####
 * Make it work with conditions as well as replicates
