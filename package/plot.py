@@ -153,7 +153,12 @@ class superplot:
                               total_width=0.8, linewidth=1):
         # select scatter size based on number of replicates
         scatter_sizes = [14, 12, 10, 8]
-        num = 0 if len(self.unique_reps) < 3 else len(self.unique_reps) - 3
+        if len(self.unique_reps) < 3:
+            num = 0 
+        elif len(self.unique_reps) > len(scatter_sizes):
+            num = -1
+        else:
+            num = len(self.unique_reps) - 3
         scatter_size = scatter_sizes[num]
         
         norm_wy = self.subgroup_dict[group]['norm_wy']
