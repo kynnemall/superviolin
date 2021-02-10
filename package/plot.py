@@ -119,8 +119,11 @@ class superplot:
                         if idx_max - len(max_cuts) != -1:
                             kde_points[idx+1] = 0
                     kde_points /= len(arr)
-                    norm_wy.append(kde_points)
-                    px.append(points)
+                    # remove nan from arrays prior to combining into dictionary
+                    kde_wo_nan = self._interpolate_nan(kde_points)
+                    points_wo_nan = self._interpolate_nan(points)
+                    norm_wy.append(kde_wo_nan)
+                    px.append(points_wo_nan)
                 except ValueError:
                     norm_wy.append([])
                     px.append(points)
@@ -131,18 +134,26 @@ class superplot:
             norm_wy = np.array([a if len(a) > 0 else np.zeros(length) for a in norm_wy])
             norm_wy = np.cumsum(norm_wy, axis = 0)
             try:
-                norm_wy = norm_wy / norm_wy.max() # [0,1]
+                norm_wy = norm_wy / np.max(norm_wy) # [0,1]
             except ValueError:
-                print(norm_wy)
+                print('Failed to normalize y values')
             # update the dictionary with the normalized data and corresponding x points
             self.subgroup_dict[group]['norm_wy'] = norm_wy
             self.subgroup_dict[group]['px'] = px
+            
+    def _interpolate_nan(self, arr):
+        diffs = np.diff(arr, axis=0)
+        median_val = np.nanmedian(diffs)
+        nan_idx = np.where(np.isnan(arr))
+        if nan_idx[0].size != 0:
+            arr[nan_idx[0][0]] = arr[nan_idx[0][0] + 1] - median_val
+        return arr
     
     def _single_subgroup_plot(self, group, axis_point, mid_df,
                               total_width=0.8, linewidth=1):
         # select scatter size based on number of replicates
-        scatter_sizes = [29, 24, 19, 14]
-        num = 0 if len(self.unique_reps) <= 3 else len(self.unique_reps) - 3
+        scatter_sizes = [14, 12, 10, 8]
+        num = 0 if len(self.unique_reps) < 3 else len(self.unique_reps) - 3
         scatter_size = scatter_sizes[num]
         
         norm_wy = self.subgroup_dict[group]['norm_wy']
@@ -319,11 +330,11 @@ if testing:
     import os
 #    os.chdir('templates')
 #    test = superplot(filename='demo_data.csv')
-    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
+#    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
 #    test = superplot(x='group', replicate_column='reps', filename='doubled_data.csv')
-    test = superplot(x='drug', replicate_column='rep', filename='3reps_3groups.csv')
-    ylabel = 'Spreading area ($\mu$$m^2$)'
-#    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
-#    os.chdir('Single reps paBBT fg')
-#    test = superplot(x='dose',y='order',replicate_column='replicate',
-#                     filename='All_paBBT_fg_adhesion_nodules.csv')
+#    test = superplot(x='drug', replicate_column='rep', filename='3reps_3groups.csv')
+#    ylabel = 'Spreading area ($\mu$$m^2$)'
+    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
+    os.chdir('Single reps paBBT fg')
+    test = superplot(x='dose',y='area',replicate_column='replicate',
+                     filename='All_paBBT_fg_adhesion_nodules.csv')

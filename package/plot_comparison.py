@@ -121,8 +121,11 @@ class superplot:
                         if idx_max - len(max_cuts) != -1:
                             kde_points[idx+1] = 0
                     kde_points /= len(arr)
-                    norm_wy.append(kde_points)
-                    px.append(points)
+                    # remove nan from arrays prior to combining into dictionary
+                    kde_wo_nan = self._interpolate_nan(kde_points)
+                    points_wo_nan = self._interpolate_nan(points)
+                    norm_wy.append(kde_wo_nan)
+                    px.append(points_wo_nan)
                 except ValueError:
                     norm_wy.append([])
                     px.append(points)
@@ -133,18 +136,26 @@ class superplot:
             norm_wy = np.array([a if len(a) > 0 else np.zeros(length) for a in norm_wy])
             norm_wy = np.cumsum(norm_wy, axis = 0)
             try:
-                norm_wy = norm_wy / norm_wy.max() # [0,1]
+                norm_wy = norm_wy / np.max(norm_wy) # [0,1]
             except ValueError:
-                print(norm_wy)
+                print('Failed to normalize y values')
             # update the dictionary with the normalized data and corresponding x points
             self.subgroup_dict[group]['norm_wy'] = norm_wy
             self.subgroup_dict[group]['px'] = px
+            
+    def _interpolate_nan(self, arr):
+        diffs = np.diff(arr, axis=0)
+        median_val = np.nanmedian(diffs)
+        nan_idx = np.where(np.isnan(arr))
+        if nan_idx[0].size != 0:
+            arr[nan_idx[0][0]] = arr[nan_idx[0][0] + 1] - median_val
+        return arr
     
     def _single_subgroup_plot(self, group, axis_point, mid_df,
                               total_width=0.8, linewidth=1):
         # select scatter size based on number of replicates
-        scatter_sizes = [29, 24, 19, 14]
-        num = 0 if len(self.unique_reps) <= 3 else len(self.unique_reps) - 3
+        scatter_sizes = [14, 12, 10, 8]
+        num = 0 if len(self.unique_reps) < 3 else len(self.unique_reps) - 3
         scatter_size = scatter_sizes[num]
         
         norm_wy = self.subgroup_dict[group]['norm_wy']
@@ -229,7 +240,7 @@ class superplot:
         idx = (np.abs(array - value)).argmin()
         return array[idx]
     
-    def statistics(self, centre_val='mean'):
+    def statistics(self, centre_val='mean', x2=2):
         """
         1. Get central values for statistics
         2. Check normality
@@ -277,7 +288,7 @@ class superplot:
         span = high - low
         increment = span * 0.03 # add high to get the new y value
         if len(self.subgroups) == 2:
-            x1, x2 = 0, 2
+            x1 = 0
             y = increment + high
             h = y + increment
             plt.plot([x1, x1, x2, x2], [y, h, h, y], lw=1, c='k')
@@ -346,9 +357,9 @@ class superplot:
             plt.plot([i, i], [lower, upper], lw=1, color='k',zorder=10) 
         plt.xticks(ticks, lbls)
         plt.xlabel('')
-        for a,b in zip(self.x_vals, self.mid_vals):
-            plt.scatter(a, b, facecolors='none', edgecolors='Black',
-                        zorder=10, marker='o', s=29)
+        for a,b,c in zip(self.x_vals, self.mid_vals, self.colours+self.colours):
+            plt.scatter(a, b, facecolors=c, edgecolors='Black',
+                        zorder=10, marker='o', s=15)
 
 # testing code
 # make ideal superplot
@@ -361,7 +372,7 @@ for x in range(6):
     if x != 1:
         test.x_vals[x] /= 2
 test.beeswarm_plot(0.8,1)
-test.statistics()
+test.statistics(x2=1)
 ax = plt.gca()
 ax.legend_ = None
 plt.ylabel('Spreading area ($\mu$$m^2$)')
