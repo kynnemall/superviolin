@@ -349,6 +349,8 @@ if testing:
 #    test = superplot(x='group', replicate_column='reps', filename='doubled_data.csv')
 #    test = superplot(x='drug', replicate_column='rep', filename='3reps_3groups.csv')
 #    ylabel = 'Spreading area ($\mu$$m^2$)'
+    # this data is for testing the end-joining bug fix
+    # also use it to test fixing the ends of the arrays
     os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
     os.chdir('Single reps paBBT fg')
     df = pd.read_csv('All_paBBT_fg_adhesion_nodules.csv')
