@@ -52,7 +52,7 @@ def get_args(preferences=False, demonstration=False):
         return arg_dict
     
 def make_user_data_dir():
-    _name = "schoenplot"
+    _name = "superviolin"
     _author = "Martin Kenny"
     _version = "0.4"
     dirs = AppDirs(_name, _author, _version)
@@ -99,25 +99,25 @@ def demo():
     superplot(**d, dataframe=df)
     plt.show()
     
-@cli.command('prefs', short_help="Change default arguments in args.txt template")
-def prefs():
-    user_data_args = make_user_data_dir()
-    with open(user_data_args, 'r+') as f:
-        click.echo(user_data_args)
-        lines = f.readlines()
-        arg_dict = get_args(preferences=True)
-        for i,l in enumerate(lines):
-            if not l.startswith('#') and ':' in l and 'REPLACE' not in l:
-                k, _ = l.split(': ')
-                old = f"{k}: {arg_dict[k]}"
-                n = input(f"{old}, do you want to replace it?\n If not, just press enter\n")
-                if not bool(n):
-                    click.echo(f"{k} unchanged")
-                else:
-                    new = f"{k}: {n}"
-                    click.echo(f"{arg_dict[k]} replaced with {n}")
-                    lines[i] = new
-        f.seek(0)
-        txt = ''.join(lines)
-        f.write(txt)
-    click.echo("\nNew settings successfully stored")
+#@cli.command('prefs', short_help="Change default arguments in args.txt template")
+#def prefs():
+#    user_data_args = make_user_data_dir()
+#    with open(user_data_args, 'r+') as f:
+#        click.echo(user_data_args)
+#        lines = f.readlines()
+#        arg_dict = get_args(preferences=True)
+#        for i,l in enumerate(lines):
+#            if not l.startswith('#') and ':' in l and 'REPLACE' not in l:
+#                k, _ = l.split(': ')
+#                old = f"{k}: {arg_dict[k]}"
+#                n = input(f"{old}, do you want to replace it?\n If not, just press enter\n")
+#                if not bool(n):
+#                    click.echo(f"{k} unchanged")
+#                else:
+#                    new = f"{k}: {n}"
+#                    click.echo(f"{arg_dict[k]} replaced with {n}")
+#                    lines[i] = new
+#        f.seek(0)
+#        txt = ''.join(lines)
+#        f.write(txt)
+#    click.echo("\nNew settings successfully stored")
