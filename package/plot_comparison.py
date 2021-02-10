@@ -128,7 +128,7 @@ class superplot:
                     px.append(points_wo_nan)
                 except ValueError:
                     norm_wy.append([])
-                    px.append(points)
+                    px.append(self._interpolate_nan(points))
             px = np.array(px)
             # catch the error when there is an empty list added to the dictionary
             length = max([len(e) for e in norm_wy])
@@ -153,12 +153,6 @@ class superplot:
     
     def _single_subgroup_plot(self, group, axis_point, mid_df,
                               total_width=0.8, linewidth=1):
-        """
-        The problem with gapping in group 2 appears to be caused by reshaping the arrays
-        Find the issue in this function. Length of outline_x or outline_wy isn't the issue.
-        The issue is within the end values of outline_x which should be integer values,
-        but instead they are offset floats.
-        """
         # select scatter size based on number of replicates
         scatter_sizes = [14, 12, 10, 8]
         if len(self.unique_reps) < 3:
@@ -184,7 +178,20 @@ class superplot:
         # use last array to plot the outline
         outline_y = np.append(px[-1], np.flipud(px[-1]))
         outline_x = np.append(norm_wy[-1], np.flipud(norm_wy[-1]) * -1) * total_width + axis_point
-        print(outline_x[0], outline_x[-1])
+        """
+        The problem with gapping in group 2 appears to be caused by reshaping the arrays
+        Find the issue in this function. Length of outline_x or outline_wy isn't the issue.
+        The issue is within the end values of outline_x which should be integer values,
+        but instead they are offset floats. Implemented temporary fix;
+        find original source of the bug later
+        """
+        if outline_x[0] != outline_x[-1]:
+            xval = round(outline_x[0])
+            yval = outline_y[0]
+            outline_x = np.insert(outline_x, 0, xval)
+            outline_x = np.insert(outline_x, outline_x.size, xval)
+            outline_y = np.insert(outline_y, 0, yval)
+            outline_y = np.insert(outline_y, outline_y.size, yval)
         for i,a in enumerate(self.unique_reps):
             reshaped_x = np.append(px[i-1], np.flipud(px[i-1]))
             mid_val = mid_df[mid_df[self.rep] == a][self.y].values

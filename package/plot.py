@@ -126,7 +126,7 @@ class superplot:
                     px.append(points_wo_nan)
                 except ValueError:
                     norm_wy.append([])
-                    px.append(points)
+                    px.append(self._interpolate_nan(points))
             px = np.array(px)
             # catch the error when there is an empty list added to the dictionary
             length = max([len(e) for e in norm_wy])
@@ -176,6 +176,16 @@ class superplot:
         # use last array to plot the outline
         outline_y = np.append(px[-1], np.flipud(px[-1]))
         outline_x = np.append(norm_wy[-1], np.flipud(norm_wy[-1]) * -1) * total_width + axis_point
+        """
+        Temporary fix; find original source of the bug and correct when time allows
+        """
+        if outline_x[0] != outline_x[-1]:
+            xval = round(outline_x[0])
+            yval = outline_y[0]
+            outline_x = np.insert(outline_x, 0, xval)
+            outline_x = np.insert(outline_x, outline_x.size, xval)
+            outline_y = np.insert(outline_y, 0, yval)
+            outline_y = np.insert(outline_y, outline_y.size, yval)
         for i,a in enumerate(self.unique_reps):
             reshaped_x = np.append(px[i-1], np.flipud(px[i-1]))
             mid_val = mid_df[mid_df[self.rep] == a][self.y].values
@@ -341,5 +351,8 @@ if testing:
 #    ylabel = 'Spreading area ($\mu$$m^2$)'
     os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
     os.chdir('Single reps paBBT fg')
+    df = pd.read_csv('All_paBBT_fg_adhesion_nodules.csv')
+    sub = df[df['area'] <= 60]
+    sub['dose'] = sub['dose'].map({0:0, 0.4:1, 1:2, 2.6:3, 6.4:4, 16:5, 40:6, 100:7})
     test = superplot(x='dose',y='area',replicate_column='replicate',
-                     filename='All_paBBT_fg_adhesion_nodules.csv')
+                     dataframe=sub)
