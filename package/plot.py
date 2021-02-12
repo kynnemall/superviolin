@@ -5,6 +5,7 @@ Created on Thu Dec 17 14:51:42 2020
 @author: Martin Kenny
 """
 
+import os
 import numpy as np
 import pandas as pd
 import scikit_posthocs as sp
@@ -23,66 +24,78 @@ class superplot:
                  filename='demo_data.csv', order="None", centre_val="mean",
                  middle_vals="mean", error_bars="SD", total_width=0.8,
                  linewidth=1, cmap='GnBu', dataframe=False):
-        errors = []
-        # check filetype
-        # will fail if filename spelled incorrectly
+        self.errors = []
         self.df = dataframe
-        if 'bool' in str(type(dataframe)):
-            if filename.endswith('csv'):
-                self.df = pd.read_csv(filename)
-            elif ".xl" in filename:
-                self.df = pd.read_excel(filename)
-            else:
-                errors.append("Incorrect filename or unsupported filetype")
         self.x = x
         self.y = y
         self.rep = replicate_column
+        
+        # ensure dataframe is loaded
+        if self._check_df(filename):
+            # ensure columns are all present in the dataframe
+            if self._cols_in_df():
+                self.subgroups = tuple(sorted(self.df[self.x].unique().tolist()))
+                if order != "None":
+                    self.subgroups = order.split(', ')
+                # dictionary of arrays for subgroup data
+                # loop through the keys and add an empty list when the replicate numbers don't match
+                self.subgroup_dict = dict(
+                    zip(self.subgroups, [{'norm_wy' : [], 'px' : []} for i in self.subgroups])
+                    )
+    
+                self.unique_reps = tuple(self.df[self.rep].unique())
+                # make sure there's enough colours for each subgroup when instantiating
+                if ',' in cmap:
+                    self.colours = tuple(cmap.split(', '))
+                else:
+                    self.cm = plt.get_cmap(cmap)
+                    self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.unique_reps))]
+                if len(self.colours) < len(self.unique_reps):
+                    print(len(self.colours))
+                    print(len(self.unique_reps))
+                    self.errors.append("Not enough colours for each replicate")
+        # if no errors exist, create the superplot. Otherwise, report errors
+        if len(self.errors) == 0:
+            self.get_kde_data()
+            self.plot_subgroups(centre_val, middle_vals, error_bars,
+                                 total_width, linewidth)
+            self.statistics()
+        else:
+            if len(self.errors) == 1:
+                print("Caught 1 error")
+            else:
+                print(f"Caught {len(self.errors)} errors")
+            for i,e in enumerate(self.errors):
+                print(f"\t{i+1}. {e}")
+                
+    def _check_df(self, filename):
+        if 'bool' in str(type(self.df)):
+            if filename.endswith('csv') and filename in os.listdir():
+                self.df = pd.read_csv(filename)
+                return True
+            elif ".xl" in filename and filename in os.listdir():
+                self.df = pd.read_excel(filename)
+                return True
+            else:
+                self.errors.append("Incorrect filename or unsupported filetype")
+                
+                return False
+    
+    def _cols_in_df(self):
         missing_cols = []
-        for col in [x, y, replicate_column]:
+        for col in [self.x, self.y, self.rep]:
             if col not in self.df.columns:
                 missing_cols.append(col)
         if len(missing_cols) != 0:
             if len(missing_cols) == 1:
-                errors.append("Variable not found: " + missing_cols[0])
+                self.errors.append("Variable not found: " + missing_cols[0])
             else:
-                errors.append("Missing variables: " + ', '.join(missing_cols))
-        if x in self.df.columns:
-            self.subgroups = tuple(sorted(self.df[self.x].unique().tolist()))
-            if order != "None":
-                self.subgroups = "placeholder until order option is implemented"
-            # dictionary of arrays for subgroup data
-            # loop through the keys and add an empty list when the replicate numbers don't match
-            self.subgroup_dict = dict(
-                zip(self.subgroups, [{'norm_wy' : [], 'px' : []} for i in self.subgroups])
-                )
-        if replicate_column in self.df.columns:
-            self.unique_reps = tuple(self.df[self.rep].unique())
-            # make sure there's enough colours for each subgroup when instantiating
-            if ',' in cmap:
-                self.colours = tuple(cmap.split(', '))
-            else:
-                self.cm = plt.get_cmap(cmap)
-                self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.unique_reps))]
-            if len(self.colours) < len(self.unique_reps):
-                print(len(self.colours))
-                print(len(self.unique_reps))
-                errors.append("Not enough colours for each replicate")
-            
-        # if no errors exist, create the superplot. Otherwise, report errors
-        if len(errors) == 0:
-            self._get_kde_data()
-            self._plot_subgroups(centre_val, middle_vals, error_bars,
-                                 total_width, linewidth)
-            self.statistics()
+                self.errors.append("Missing variables: " + ', '.join(missing_cols))
+            return False
         else:
-            if len(errors) == 1:
-                print("Caught 1 error")
-            else:
-                print(f"Caught {len(errors)} errors")
-            for i,e in enumerate(errors):
-                print(f"\t{i+1}. {e}")
+            return True
 
-    def _get_kde_data(self):
+    def get_kde_data(self):
         for group in self.subgroups:
             px = []
             norm_wy = []
@@ -195,7 +208,7 @@ class superplot:
             # then get corresponding point in reshaped_x to plot the points
             if mid_val.size > 0: # account for empty mid_val
                 arr = reshaped_x[np.logical_not(np.isnan(reshaped_x))]
-                nearest = self.find_nearest(arr, mid_val[0])
+                nearest = self._find_nearest(arr, mid_val[0])
                 # find the indices of nearest in new_wy
                 # there will be two because new_wy is a loop
                 idx = np.where(reshaped_x == nearest)
@@ -205,7 +218,7 @@ class superplot:
                             zorder=2, marker='o', s=scatter_size)
         plt.plot(outline_x, outline_y, color='Black', linewidth=linewidth)
         
-    def _plot_subgroups(self, centre_val, middle_vals,
+    def plot_subgroups(self, centre_val, middle_vals,
                        error_bars, total_width, linewidth):
         width = 1 + len(self.subgroups) / 2
         height = 5 / 2.54
@@ -244,7 +257,7 @@ class superplot:
             plt.plot([i*2, i*2], [lower, upper], lw=linewidth, color='k')  
         plt.xticks(ticks, lbls)
         
-    def find_nearest(self, array, value):
+    def _find_nearest(self, array, value):
         array = np.asarray(array)
         idx = (np.abs(array - value)).argmin()
         return array[idx]
@@ -332,7 +345,10 @@ class superplot:
         lst = []
         for group in self.subgroups:
             group_var = data[data[self.x] == group][self.y]
-            stat, p = shapiro(group_var)
+            try:
+                _, p = shapiro(group_var)
+            except:
+                p = 1
             lst.append(p)
         normal = [1 if i > 0.05 else 0 for i in lst]
         if np.mean(normal) > 0.65:
@@ -340,9 +356,11 @@ class superplot:
         else:
             return False
 
-testing = True
+testing = False
 if testing:
-    import os
+    pass
+#    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
+#    test = superplot(x='dose', y='area', filename='BBT_fg_adhesion_stats_Nof4.csv', replicate_column='run')
 #    os.chdir('templates')
 #    test = superplot(filename='demo_data.csv')
 #    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
@@ -351,10 +369,10 @@ if testing:
 #    ylabel = 'Spreading area ($\mu$$m^2$)'
     # this data is for testing the end-joining bug fix
     # also use it to test fixing the ends of the arrays
-    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
-    os.chdir('Single reps paBBT fg')
-    df = pd.read_csv('All_paBBT_fg_adhesion_nodules.csv')
-    sub = df[df['area'] <= 60]
-    sub['dose'] = sub['dose'].map({0:0, 0.4:1, 1:2, 2.6:3, 6.4:4, 16:5, 40:6, 100:7})
-    test = superplot(x='dose',y='area',replicate_column='replicate',
-                     dataframe=sub)
+#    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
+#    os.chdir('Single reps paBBT fg')
+#    df = pd.read_csv('All_paBBT_fg_adhesion_nodules.csv')
+#    sub = df[df['area'] <= 60]
+#    sub['dose'] = sub['dose'].map({0:0, 0.4:1, 1:2, 2.6:3, 6.4:4, 16:5, 40:6, 100:7})
+#    test = superplot(x='dose',y='area',replicate_column='replicate',
+#                     dataframe=sub)

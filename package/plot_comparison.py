@@ -51,7 +51,7 @@ class superplot:
         if x in self.df.columns:
             self.subgroups = tuple(sorted(self.df[self.x].unique().tolist()))
             if order != "None":
-                self.subgroups = "placeholder until order option is implemented"
+                self.subgroups = order.split(', ')
             # dictionary of arrays for subgroup data
             # loop through the keys and add an empty list when the replicate numbers don't match
             self.subgroup_dict = dict(
@@ -154,7 +154,7 @@ class superplot:
     def _single_subgroup_plot(self, group, axis_point, mid_df,
                               total_width=0.8, linewidth=1):
         # select scatter size based on number of replicates
-        scatter_sizes = [14, 12, 10, 8]
+        scatter_sizes = [12, 10, 8, 6]
         if len(self.unique_reps) < 3:
             num = 0 
         elif len(self.unique_reps) > len(scatter_sizes):
@@ -178,13 +178,6 @@ class superplot:
         # use last array to plot the outline
         outline_y = np.append(px[-1], np.flipud(px[-1]))
         outline_x = np.append(norm_wy[-1], np.flipud(norm_wy[-1]) * -1) * total_width + axis_point
-        """
-        The problem with gapping in group 2 appears to be caused by reshaping the arrays
-        Find the issue in this function. Length of outline_x or outline_wy isn't the issue.
-        The issue is within the end values of outline_x which should be integer values,
-        but instead they are offset floats. Implemented temporary fix;
-        find original source of the bug later
-        """
         if outline_x[0] != outline_x[-1]:
             xval = round(outline_x[0])
             yval = outline_y[0]
@@ -382,28 +375,28 @@ class superplot:
 
 # testing code
 # make ideal superplot
-#os.chdir('templates')
-#test = superplot()
-#plt.ylabel('Spreading area ($\mu$$m^2$)')
-##plt.close()
-## make Lord et al. SuperPlot
-#for x in range(6):
-#    if x != 1:
-#        test.x_vals[x] /= 2
-#test.beeswarm_plot(0.8,1)
-#test.statistics(x2=1)
-#ax = plt.gca()
-#ax.legend_ = None
-#plt.ylabel('Spreading area ($\mu$$m^2$)')
-## SuperPlot with 6 replicates
-#os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
-#test = superplot(x='drug', y='variable', filename='20210126_6_replicates.csv', replicate_column='rep')
-#plt.ylabel('Spreading area ($\mu$$m^2$)')
-# SuperPlot with 8 conditions
-os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
-os.chdir('Single reps paBBT fg')
-df = pd.read_csv('All_paBBT_fg_adhesion_nodules.csv')
-sub = df[df['area'] <= 60]
-sub['dose'] = sub['dose'].map({0:0, 0.4:1, 1:2, 2.6:3, 6.4:4, 16:5, 40:6, 100:7})
-test = superplot(x='dose', y='area', replicate_column='replicate', dataframe=sub)
+os.chdir('templates')
+test = superplot()
 plt.ylabel('Spreading area ($\mu$$m^2$)')
+#plt.close()
+# make Lord et al. SuperPlot
+for x in range(6):
+    if x != 1:
+        test.x_vals[x] /= 2
+test.beeswarm_plot(0.8,1)
+test.statistics(x2=1)
+ax = plt.gca()
+ax.legend_ = None
+plt.ylabel('Spreading area ($\mu$$m^2$)')
+# SuperPlot with 6 replicates
+os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
+test = superplot(x='drug', y='variable', filename='20210126_6_replicates.csv', replicate_column='rep')
+plt.ylabel('Spreading area ($\mu$$m^2$)')
+# SuperPlot with 8 conditions
+#os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
+#os.chdir('Single reps paBBT fg')
+#df = pd.read_csv('All_paBBT_fg_adhesion_nodules.csv')
+#sub = df[df['area'] <= 60]
+#sub['dose'] = sub['dose'].map({0:0, 0.4:1, 1:2, 2.6:3, 6.4:4, 16:5, 40:6, 100:7})
+#test = superplot(x='dose', y='area', replicate_column='replicate', dataframe=sub)
+#plt.ylabel('Spreading area ($\mu$$m^2$)')
