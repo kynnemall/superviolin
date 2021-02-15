@@ -18,6 +18,7 @@ params['ytick.labelsize'] = 8
 params['axes.labelsize'] = 9
 params['axes.spines.right'] = False
 params['axes.spines.top'] = False
+#params['figure.dpi'] = 100
 
 class superplot:    
     def __init__(self, x='drug', y='variable', replicate_column='replicate',
@@ -65,8 +66,8 @@ class superplot:
                 print("Caught 1 error")
             else:
                 print(f"Caught {len(self.errors)} errors")
-            for i,e in enumerate(self.errors):
-                print(f"\t{i+1}. {e}")
+            for i,e in enumerate(self.errors, 1):
+                print(f"\t{i}. {e}")
                 
     def _check_df(self, filename):
         if 'bool' in str(type(self.df)):
@@ -78,7 +79,6 @@ class superplot:
                 return True
             else:
                 self.errors.append("Incorrect filename or unsupported filetype")
-                
                 return False
     
     def _cols_in_df(self):
@@ -94,6 +94,15 @@ class superplot:
             return False
         else:
             return True
+        
+    def _color_wheel(self):
+        colours = ['#FF0000', '#FF7F00', '#FFFF00', '#7FFF00',
+                  '#00FF00', '#00FF7F', '#00FFFF', '#007FFF',
+                  '#0000FF', '#7F00FF', '#FF00FF', '#FF007F']
+        s = len(self.subgroups)
+        idx = int(len(colours) / s)
+        idx = int(len(colours) / s)
+        return colours[::idx][:s]
 
     def get_kde_data(self):
         for group in self.subgroups:
@@ -131,7 +140,7 @@ class superplot:
                     for idx in range(idx_max - len(max_cuts), 0):
                         if idx_max - len(max_cuts) != -1:
                             kde_points[idx+1] = 0
-                    kde_points /= len(arr)
+#                    kde_points /= len(arr)
                     # remove nan from arrays prior to combining into dictionary
                     kde_wo_nan = self._interpolate_nan(kde_points)
                     points_wo_nan = self._interpolate_nan(points)
@@ -356,11 +365,10 @@ class superplot:
         else:
             return False
 
-testing = False
+testing = True
 if testing:
-    pass
-#    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
-#    test = superplot(x='dose', y='area', filename='BBT_fg_adhesion_stats_Nof4.csv', replicate_column='run')
+    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
+    test = superplot(x='dose', y='area', filename='BBT_fg_adhesion_stats_Nof4.csv', replicate_column='run')
 #    os.chdir('templates')
 #    test = superplot(filename='demo_data.csv')
 #    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
@@ -369,10 +377,9 @@ if testing:
 #    ylabel = 'Spreading area ($\mu$$m^2$)'
     # this data is for testing the end-joining bug fix
     # also use it to test fixing the ends of the arrays
-#    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
-#    os.chdir('Single reps paBBT fg')
-#    df = pd.read_csv('All_paBBT_fg_adhesion_nodules.csv')
-#    sub = df[df['area'] <= 60]
-#    sub['dose'] = sub['dose'].map({0:0, 0.4:1, 1:2, 2.6:3, 6.4:4, 16:5, 40:6, 100:7})
-#    test = superplot(x='dose',y='area',replicate_column='replicate',
-#                     dataframe=sub)
+    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
+    os.chdir('Single reps paBBT fg')
+    df = pd.read_csv('All_paBBT_fg_adhesion_nodules.csv')
+    sub = df[df['area'] <= 60]
+    sub['dose'] = sub['dose'].map({0:0, 0.4:1, 1:2, 2.6:3, 6.4:4, 16:5, 40:6, 100:7})
+    test = superplot(x='dose',y='area',replicate_column='replicate', dataframe=sub)

@@ -392,11 +392,3 @@ plt.ylabel('Spreading area ($\mu$$m^2$)')
 os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
 test = superplot(x='drug', y='variable', filename='20210126_6_replicates.csv', replicate_column='rep')
 plt.ylabel('Spreading area ($\mu$$m^2$)')
-# SuperPlot with 8 conditions
-#os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
-#os.chdir('Single reps paBBT fg')
-#df = pd.read_csv('All_paBBT_fg_adhesion_nodules.csv')
-#sub = df[df['area'] <= 60]
-#sub['dose'] = sub['dose'].map({0:0, 0.4:1, 1:2, 2.6:3, 6.4:4, 16:5, 40:6, 100:7})
-#test = superplot(x='dose', y='area', replicate_column='replicate', dataframe=sub)
-#plt.ylabel('Spreading area ($\mu$$m^2$)')
