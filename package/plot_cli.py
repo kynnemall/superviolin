@@ -14,6 +14,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from appdirs import AppDirs
 from plot import superplot
+#from matplotlib import rcParams as params
 
 def process_txt(txt):
     arg_dict = {}
@@ -59,12 +60,10 @@ def make_user_data_dir():
     user_data_args = os.path.join(dirs.user_data_dir, "args.txt")
     if not os.path.exists(dirs.user_data_dir):
         os.makedirs(dirs.user_data_dir, mode=0o777)
-        click.echo("Making directory")
-    if not os.path.isfile(user_data_args):        
-        txt_data = pkgutil.get_data(__name__, "templates/args.txt").decode()
-        with open(user_data_args, "w") as f:
-            f.write(txt_data)
-        click.echo("Making default args.txt file")
+        click.echo("Making directory")       
+    txt_data = pkgutil.get_data(__name__, "templates/args.txt").decode()
+    with open(user_data_args, "w") as f:
+        f.write(txt_data)
     return user_data_args
 
 @click.group()

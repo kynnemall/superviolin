@@ -33,8 +33,11 @@ total_width: 0.8
 linewidth: 1
 
 # colours used for each individual replicate. List of potential colours available
-# at https://matplotlib.org/3.1.0/gallery/color/named_colors.html
+# at https://matplotlib.org/stable/gallery/color/named_colors.html
 # under the "CSS Colors" heading. Separate colours by ', '
 # alternatively, use a colour map from
-# https://matplotlib.org/3.1.1/tutorials/colors/colormaps.html
+# https://matplotlib.org/stable/tutorials/colors/colormaps.html
 cmap: Set2
+
+# dpi used for rendering and saving Violin SuperPlots
+dpi: 300

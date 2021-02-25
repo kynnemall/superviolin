@@ -18,19 +18,19 @@ params['ytick.labelsize'] = 8
 params['axes.labelsize'] = 9
 params['axes.spines.right'] = False
 params['axes.spines.top'] = False
-params['figure.dpi'] = 300
-params['savefig.dpi'] = 300
 
 class superplot:    
     def __init__(self, x='drug', y='variable', replicate_column='replicate',
                  filename='demo_data.csv', order="None", centre_val="mean",
                  middle_vals="mean", error_bars="SD", total_width=0.8,
-                 linewidth=1, cmap='Set2', dataframe=False):
+                 linewidth=1, cmap='Set2', dataframe=False, dpi=300):
         self.errors = []
         self.df = dataframe
         self.x = x
         self.y = y
         self.rep = replicate_column
+        params['figure.dpi'] = dpi
+        params['savefig.dpi'] = dpi
         
         # ensure dataframe is loaded
         if self._check_df(filename):
