@@ -61,6 +61,13 @@ class superplot:
                 )
         if replicate_column in self.df.columns:
             self.unique_reps = tuple(self.df[self.rep].unique())
+            if len(self.unique_reps) == 6:
+                self.unique_reps = ['180807_paBBT_fg_adhesion_nodules.csv',
+                                    '190703_paBBT_fg_adhesion_nodules.csv',
+                                    '190711_paBBT_fg_adhesion_nodules.csv',
+                                    '180725_copy',
+                                    '20200429_P-selectin_paBBT_adhesion_nodules.csv',
+                                    '180725_paBBT_fg_adhesion_nodules.csv']
             # make sure there's enough colours for each subgroup when instantiating
             if ',' in cmap:
                 self.colours = tuple(cmap.split(', '))
@@ -188,7 +195,6 @@ class superplot:
             outline_y = np.insert(outline_y, 0, yval)
             outline_y = np.insert(outline_y, outline_y.size, yval)
         for i,a in enumerate(self.unique_reps):
-            print(a)
             reshaped_x = np.append(px[i-1], np.flipud(px[i-1]))
             mid_val = mid_df[mid_df[self.rep] == a][self.y].values
             reshaped_y = new_wy[i] * total_width  + axis_point
