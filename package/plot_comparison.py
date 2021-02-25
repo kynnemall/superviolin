@@ -19,12 +19,14 @@ params['ytick.labelsize'] = 8
 params['axes.labelsize'] = 9
 params['axes.spines.right'] = False
 params['axes.spines.top'] = False
+params['figure.dpi'] = 300
+params['savefig.dpi'] = 300
 
 class superplot:    
     def __init__(self, x='drug', y='variable', replicate_column='replicate',
                  filename='demo_data.csv', order="None", centre_val="mean",
                  middle_vals="mean", error_bars="SD", total_width=0.8,
-                 linewidth=1, cmap='GnBu', dataframe=False):
+                 linewidth=1, cmap='Set2', dataframe=False):
         errors = []
         # check filetype
         # will fail if filename spelled incorrectly
@@ -64,7 +66,8 @@ class superplot:
                 self.colours = tuple(cmap.split(', '))
             else:
                 self.cm = plt.get_cmap(cmap)
-                self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.unique_reps))]
+#                self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.unique_reps))]
+                self.colours = [self.cm(i / 8) for i in range(len(self.unique_reps))]
             if len(self.colours) < len(self.unique_reps):
                 print(len(self.colours))
                 print(len(self.unique_reps))
@@ -72,7 +75,7 @@ class superplot:
             
         # if no errors exist, create the superplot. Otherwise, report errors
         if len(errors) == 0:
-            self._get_kde_data()
+            self.get_kde_data()
             self._plot_subgroups(centre_val, middle_vals, error_bars,
                                  total_width, linewidth)
             self.statistics()
@@ -84,7 +87,7 @@ class superplot:
             for i,e in enumerate(errors):
                 print(f"\t{i+1}. {e}")
 
-    def _get_kde_data(self):
+    def get_kde_data(self):
         for group in self.subgroups:
             px = []
             norm_wy = []
@@ -99,14 +102,14 @@ class superplot:
             min_cuts = sorted(min_cuts)
             max_cuts = sorted(max_cuts)
             # make linespace of points from highest_min_cut to lowest_max_cut
-            points1 = list(np.linspace(np.nanmax(min_cuts), np.nanmin(max_cuts), num = 256))
+            points1 = list(np.linspace(np.nanmin(min_cuts), np.nanmax(max_cuts), num = 128))
             points = sorted(list(set(min_cuts + points1 + max_cuts))) 
             for rep in self.unique_reps:
                 # first point to catch an empty list caused by uneven rep numbers
                 try:
                     sub = self.df[(self.df[self.rep] == rep) & (self.df[self.x] == group)][self.y]
                     arr = np.array(sub)
-                    # remove nan values which could cause a ValueError
+                    # remove nan or inf values which could cause a kde ValueError
                     arr = arr[~(np.isnan(arr))]
                     kde = gaussian_kde(arr)
                     kde_points = kde.evaluate(points)
@@ -120,7 +123,6 @@ class superplot:
                     for idx in range(idx_max - len(max_cuts), 0):
                         if idx_max - len(max_cuts) != -1:
                             kde_points[idx+1] = 0
-                    kde_points /= len(arr)
                     # remove nan from arrays prior to combining into dictionary
                     kde_wo_nan = self._interpolate_nan(kde_points)
                     points_wo_nan = self._interpolate_nan(points)
@@ -186,9 +188,11 @@ class superplot:
             outline_y = np.insert(outline_y, 0, yval)
             outline_y = np.insert(outline_y, outline_y.size, yval)
         for i,a in enumerate(self.unique_reps):
+            print(a)
             reshaped_x = np.append(px[i-1], np.flipud(px[i-1]))
             mid_val = mid_df[mid_df[self.rep] == a][self.y].values
             reshaped_y = new_wy[i] * total_width  + axis_point
+            plt.plot(reshaped_y, reshaped_x, c='k', linewidth=0.5)
             plt.fill(reshaped_y, reshaped_x, color=self.colours[i])
             # get the mid_val each replicate and find it in reshaped_x
             # then get corresponding point in reshaped_x to plot the points
@@ -378,8 +382,10 @@ class superplot:
 os.chdir('templates')
 test = superplot()
 plt.ylabel('Spreading area ($\mu$$m^2$)')
-#plt.close()
-# make Lord et al. SuperPlot
+#ax = plt.gca()
+#ylims = ax.get_ylim()
+##plt.close()
+## make Lord et al. SuperPlot
 for x in range(6):
     if x != 1:
         test.x_vals[x] /= 2
@@ -387,8 +393,12 @@ test.beeswarm_plot(0.8,1)
 test.statistics(x2=1)
 ax = plt.gca()
 ax.legend_ = None
-plt.ylabel('Spreading area ($\mu$$m^2$)')
-# SuperPlot with 6 replicates
+#plt.ylabel('Spreading area ($\mu$$m^2$)')
+#plt.ylim(ylims)
+## SuperPlot with 6 replicates
 os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
-test = superplot(x='drug', y='variable', filename='20210126_6_replicates.csv', replicate_column='rep')
+df = pd.read_csv('20210126_6_replicates.csv')
+spread = df[df['variable'] <= 55]
+test = superplot(x='drug', y='variable', dataframe=spread, replicate_column='rep')
 plt.ylabel('Spreading area ($\mu$$m^2$)')
+#plt.ylim(ylims)

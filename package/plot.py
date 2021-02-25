@@ -18,13 +18,14 @@ params['ytick.labelsize'] = 8
 params['axes.labelsize'] = 9
 params['axes.spines.right'] = False
 params['axes.spines.top'] = False
-#params['figure.dpi'] = 100
+params['figure.dpi'] = 300
+params['savefig.dpi'] = 300
 
 class superplot:    
     def __init__(self, x='drug', y='variable', replicate_column='replicate',
                  filename='demo_data.csv', order="None", centre_val="mean",
                  middle_vals="mean", error_bars="SD", total_width=0.8,
-                 linewidth=1, cmap='GnBu', dataframe=False):
+                 linewidth=1, cmap='Set2', dataframe=False):
         self.errors = []
         self.df = dataframe
         self.x = x
@@ -50,7 +51,8 @@ class superplot:
                     self.colours = tuple(cmap.split(', '))
                 else:
                     self.cm = plt.get_cmap(cmap)
-                    self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.unique_reps))]
+#                    self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.unique_reps))]
+                    self.colours = [self.cm(i / 8) for i in range(len(self.unique_reps))]
                 if len(self.colours) < len(self.unique_reps):
                     print(len(self.colours))
                     print(len(self.unique_reps))
@@ -80,12 +82,11 @@ class superplot:
             else:
                 self.errors.append("Incorrect filename or unsupported filetype")
                 return False
+        else:
+            return True
     
     def _cols_in_df(self):
-        missing_cols = []
-        for col in [self.x, self.y, self.rep]:
-            if col not in self.df.columns:
-                missing_cols.append(col)
+        missing_cols = [col for col in [self.x, self.y, self.rep] if col not in self.df.columns]
         if len(missing_cols) != 0:
             if len(missing_cols) == 1:
                 self.errors.append("Variable not found: " + missing_cols[0])
@@ -119,7 +120,7 @@ class superplot:
             min_cuts = sorted(min_cuts)
             max_cuts = sorted(max_cuts)
             # make linespace of points from highest_min_cut to lowest_max_cut
-            points1 = list(np.linspace(np.nanmax(min_cuts), np.nanmin(max_cuts), num = 128))
+            points1 = list(np.linspace(np.nanmin(min_cuts), np.nanmax(max_cuts), num = 128))
             points = sorted(list(set(min_cuts + points1 + max_cuts))) 
             for rep in self.unique_reps:
                 # first point to catch an empty list caused by uneven rep numbers
@@ -140,7 +141,6 @@ class superplot:
                     for idx in range(idx_max - len(max_cuts), 0):
                         if idx_max - len(max_cuts) != -1:
                             kde_points[idx+1] = 0
-#                    kde_points /= len(arr)
                     # remove nan from arrays prior to combining into dictionary
                     kde_wo_nan = self._interpolate_nan(kde_points)
                     points_wo_nan = self._interpolate_nan(points)
@@ -364,22 +364,4 @@ class superplot:
             return True
         else:
             return False
-
-testing = True
-if testing:
-    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
-    test = superplot(x='dose', y='area', filename='BBT_fg_adhesion_stats_Nof4.csv', replicate_column='run')
-#    os.chdir('templates')
-#    test = superplot(filename='demo_data.csv')
-#    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
-#    test = superplot(x='group', replicate_column='reps', filename='doubled_data.csv')
-#    test = superplot(x='drug', replicate_column='rep', filename='3reps_3groups.csv')
-#    ylabel = 'Spreading area ($\mu$$m^2$)'
-    # this data is for testing the end-joining bug fix
-    # also use it to test fixing the ends of the arrays
-    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Consequences of contractility\CoC data')
-    os.chdir('Single reps paBBT fg')
-    df = pd.read_csv('All_paBBT_fg_adhesion_nodules.csv')
-    sub = df[df['area'] <= 60]
-    sub['dose'] = sub['dose'].map({0:0, 0.4:1, 1:2, 2.6:3, 6.4:4, 16:5, 40:6, 100:7})
-    test = superplot(x='dose',y='area',replicate_column='replicate', dataframe=sub)
+        

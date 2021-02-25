@@ -9,7 +9,7 @@ Created on Sat Jan  9 18:27:08 2021
 from setuptools import setup, find_packages
 
 setup(
-      name = "schoenplot",
+      name = "superviolin",
       version = 0.4,
       py_modules = ['plot_cli', 'plot'],
       url = "",
@@ -20,7 +20,7 @@ setup(
       maintainer_email = "mkenny5@tcd.ie",
       packages = find_packages(),
       entry_points = {
-                      'console_scripts': ['schoenplot=plot_cli:cli']
+                      'console_scripts': ['superviolin=plot_cli:cli']
                       },
       python_requires = ">=3.6",
       install_requires = [

@@ -15,7 +15,7 @@ filename: demo_data.csv
 # The following arguments below may be changed as the user desires
 
 # order of the experimental conditions from left to right
-order: None
+order: Control, Drug
 
 # use mean (default) or median to position. Default: mean
 centre_val: mean
@@ -37,4 +37,4 @@ linewidth: 1
 # under the "CSS Colors" heading. Separate colours by ', '
 # alternatively, use a colour map from
 # https://matplotlib.org/3.1.1/tutorials/colors/colormaps.html
-cmap: GnBu
+cmap: Set2

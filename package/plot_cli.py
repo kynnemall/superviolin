@@ -49,7 +49,7 @@ def get_args(preferences=False, demonstration=False):
             with open("args.txt", "r") as f:
                 lines = f.readlines()
             arg_dict = process_txt(lines)
-        return arg_dict
+            return arg_dict
     
 def make_user_data_dir():
     _name = "superviolin"
@@ -80,7 +80,7 @@ def init():
     with open("args.txt", "w") as f:
         f.write(txt_data)
     click.echo('Created args.txt')
-    click.echo('Modify args.txt with your preferences then run "schoenplot plot"')
+    click.echo('Modify args.txt with your preferences then run "superviolin plot"')
 
 @cli.command('plot', short_help="Generate superplot")
 def make_superplot():
@@ -99,6 +99,8 @@ def demo():
     superplot(**d, dataframe=df)
     plt.show()
     
+# extra lines are added to args.txt in templates folder when this command is used
+# either fix or remove when released on PyPI 
 #@cli.command('prefs', short_help="Change default arguments in args.txt template")
 #def prefs():
 #    user_data_args = make_user_data_dir()
