@@ -72,7 +72,13 @@ def cli():
 def init():
     user_data_args = make_user_data_dir()
     with open(user_data_args, "r") as default:
-        txt_data = default.read()
+        txt_data = default.readlines()
+        txt_lines = []
+        for l in txt_data:
+            if l != '\n':
+                txt_lines.append(l)
+                txt_lines.append('\n')
+        txt_data = ''.join(txt_lines)
     with open("args.txt", "w") as f:
         f.write(txt_data)
     click.echo('Created args.txt')
