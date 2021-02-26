@@ -21,11 +21,10 @@ params['axes.spines.top'] = False
 params['figure.dpi'] = 300
 
 class superplot:    
-    def __init__(self, x='drug', y='variable', replicate_column='replicate',
-                 filename='demo_data.csv', order="None", centre_val="mean",
-                 middle_vals="mean", error_bars="SD", total_width=0.8,
-                 linewidth=1, cmap='Set2', dataframe=False, dpi=300,
-                 sep_linewidth=1, xlabel='', ylabel=''):
+    def __init__(self, x, y, replicate_column, filename, order="None",
+                 centre_val="mean", middle_vals="mean", error_bars="SD",
+                 total_width=0.8, linewidth=1, dataframe=False, dpi=300,
+                 sep_linewidth=1, xlabel='', ylabel='', cmap='Set2'):
         self.errors = []
         self.df = dataframe
         self.x = x

@@ -58,8 +58,7 @@ def make_user_data_dir():
     dirs = AppDirs(_name, _author, _version)
     user_data_args = os.path.join(dirs.user_data_dir, "args.txt")
     if not os.path.exists(dirs.user_data_dir):
-        os.makedirs(dirs.user_data_dir, mode=0o777)
-        click.echo("Making directory")       
+        os.makedirs(dirs.user_data_dir, mode=0o777)     
     txt_data = pkgutil.get_data(__name__, "templates/args.txt").decode()
     with open(user_data_args, "w") as f:
         f.write(txt_data)
@@ -77,7 +76,7 @@ def init():
     with open("args.txt", "w") as f:
         f.write(txt_data)
     click.echo('Created args.txt')
-    click.echo('Modify args.txt with your preferences then run "superviolin plot"')
+    click.echo('Modify args.txt with your preferences, then run "superviolin plot"')
 
 @cli.command('plot', short_help="Generate superplot")
 def make_superplot():
