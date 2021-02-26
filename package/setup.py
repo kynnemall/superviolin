@@ -29,7 +29,9 @@ setup(
           "matplotlib",
           "numpy",
           "pandas",
-          "scipy"
+          "scipy",
+          "xlrd",
+          "scikit-posthocs"
           ],
       package_data = {'' : ['demo_data.csv',
                             'args.txt',

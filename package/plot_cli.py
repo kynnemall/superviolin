@@ -14,7 +14,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from appdirs import AppDirs
 from plot import superplot
-#from matplotlib import rcParams as params
 
 def process_txt(txt):
     arg_dict = {}
@@ -73,7 +72,6 @@ def cli():
 @cli.command('init', short_help="Create args.txt in current directory")
 def init():
     user_data_args = make_user_data_dir()
-    click.echo(user_data_args)
     with open(user_data_args, "r") as default:
         txt_data = default.read()
     with open("args.txt", "w") as f:

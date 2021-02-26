@@ -18,24 +18,36 @@ params['ytick.labelsize'] = 8
 params['axes.labelsize'] = 9
 params['axes.spines.right'] = False
 params['axes.spines.top'] = False
+params['figure.dpi'] = 300
 
 class superplot:    
     def __init__(self, x='drug', y='variable', replicate_column='replicate',
                  filename='demo_data.csv', order="None", centre_val="mean",
                  middle_vals="mean", error_bars="SD", total_width=0.8,
-                 linewidth=1, cmap='Set2', dataframe=False, dpi=300):
+                 linewidth=1, cmap='Set2', dataframe=False, dpi=300,
+                 sep_linewidth=1, xlabel='', ylabel=''):
         self.errors = []
         self.df = dataframe
         self.x = x
         self.y = y
         self.rep = replicate_column
-        params['figure.dpi'] = dpi
+        self.sep_linewidth = sep_linewidth
         params['savefig.dpi'] = dpi
+        self.xlabel = xlabel
+        self.ylabel = ylabel
+        if self.xlabel == 'REPLACE_ME':
+            self.xlabel = ''
+        if self.ylabel == 'REPLACE_ME':
+            self.ylabel = ''
         
         # ensure dataframe is loaded
         if self._check_df(filename):
             # ensure columns are all present in the dataframe
             if self._cols_in_df():
+                # force x and replicate_column to string types
+                self.df[self.x] = self.df[self.x].astype(str)
+                self.df[self.rep] = self.df[self.rep].astype(str)
+                # organize subgroups
                 self.subgroups = tuple(sorted(self.df[self.x].unique().tolist()))
                 if order != "None":
                     self.subgroups = order.split(', ')
@@ -212,6 +224,7 @@ class superplot:
             reshaped_x = np.append(px[i-1], np.flipud(px[i-1]))
             mid_val = mid_df[mid_df[self.rep] == a][self.y].values
             reshaped_y = new_wy[i] * total_width  + axis_point
+            plt.plot(reshaped_y, reshaped_x, c='k', linewidth=self.sep_linewidth)
             plt.fill(reshaped_y, reshaped_x, color=self.colours[i])
             # get the mid_val each replicate and find it in reshaped_x
             # then get corresponding point in reshaped_x to plot the points
@@ -265,6 +278,9 @@ class superplot:
             # plot vertical lines connecting the limits
             plt.plot([i*2, i*2], [lower, upper], lw=linewidth, color='k')  
         plt.xticks(ticks, lbls)
+        plt.xlabel(self.xlabel)
+        plt.ylabel(self.ylabel)
+        plt.tight_layout()
         
     def _find_nearest(self, array, value):
         array = np.asarray(array)
@@ -349,6 +365,7 @@ class superplot:
                 plt.text((x1+x2)/2, y, f"P = {pval:.3f}", ha=text_loc[i],
                          va='bottom', color='Black', fontsize=8)
             plt.ylim((low, low + span * 1.5))
+        plt.tight_layout()
     
     def _normality(self, data):
         lst = []

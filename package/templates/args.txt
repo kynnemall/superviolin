@@ -1,4 +1,4 @@
-# IMPORTANT:        Users must change the following 4 arguments before trying to generate the superplot
+# IMPORTANT:        Users must change the following 6 arguments before trying to generate the superplot
 # variable to display on the x axis
 x: REPLACE_ME
 
@@ -10,6 +10,12 @@ replicate_column: REPLACE_ME
 
 # csv file or Microsoft Excel file containing data in tidy data format
 filename: REPLACE_ME
+
+# the label for the x axis. To have no label on the x axis, don't change the default value.
+xlabel: REPLACE_ME
+
+# label for the y axis. To have no label on the y axis, don't change the default value.
+ylabel: REPLACE_ME
 
 
 # The following arguments below may be changed as the user desires
@@ -32,6 +38,8 @@ total_width: 0.8
 # width of the black lines around each violinplot and the skeleton plot. Default value: 1
 linewidth: 1
 
+# width of the black lines separating replicates in each violin. Default value: 0.5
+sep_linewidth: 0.5
 # colours used for each individual replicate. List of potential colours available
 # at https://matplotlib.org/stable/gallery/color/named_colors.html
 # under the "CSS Colors" heading. Separate colours by ', '
@@ -40,4 +48,4 @@ linewidth: 1
 cmap: Set2
 
 # dpi used for rendering and saving Violin SuperPlots
-dpi: 300
+dpi: 600
