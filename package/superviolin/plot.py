@@ -21,26 +21,26 @@ params['axes.spines.top'] = False
 params['figure.dpi'] = 300
 
 class superplot:    
-    def __init__(self, x, y, replicate_column, filename, order="None",
-                 centre_val="mean", middle_vals="mean", error_bars="SD",
+    def __init__(self, Condition, Value, Replicate, filename, data_format, order="None",
+                 centre_val="mean", middle_vals="mean", error_bars="SD", statistics='no',
                  total_width=0.8, linewidth=1, dataframe=False, dpi=300,
                  sep_linewidth=1, xlabel='', ylabel='', cmap='Set2'):
         self.errors = []
         self.df = dataframe
-        self.x = x
-        self.y = y
-        self.rep = replicate_column
+        self.x = Condition
+        self.y = Value
+        self.rep = Replicate
         self.sep_linewidth = sep_linewidth
-        params['savefig.dpi'] = dpi
         self.xlabel = xlabel
         self.ylabel = ylabel
+        params['savefig.dpi'] = dpi
         if self.xlabel == 'REPLACE_ME':
             self.xlabel = ''
         if self.ylabel == 'REPLACE_ME':
             self.ylabel = ''
         
         # ensure dataframe is loaded
-        if self._check_df(filename):
+        if self._check_df(filename, data_format):
             # ensure columns are all present in the dataframe
             if self._cols_in_df():
                 # force x and replicate_column to string types
@@ -72,8 +72,8 @@ class superplot:
         if len(self.errors) == 0:
             self.get_kde_data()
             self.plot_subgroups(centre_val, middle_vals, error_bars,
-                                 total_width, linewidth)
-            self.statistics()
+                                  total_width, linewidth)
+            self.statistics(centre_val, on_plot=statistics)
         else:
             if len(self.errors) == 1:
                 print("Caught 1 error")
@@ -81,14 +81,31 @@ class superplot:
                 print(f"Caught {len(self.errors)} errors")
             for i,e in enumerate(self.errors, 1):
                 print(f"\t{i}. {e}")
-                
-    def _check_df(self, filename):
+                            
+    def _make_tidy(self, xl_file):
+        xl = pd.ExcelFile(xl_file)
+        sheets = xl.sheet_names # replicates
+        dfs = []
+        for s in sheets:
+            df = xl.parse(s)
+            if not df.empty:
+                df = df.melt(value_vars=df.columns.tolist(), var_name=self.x,
+                             value_name=self.y)
+                df[self.rep] = s
+                dfs.append(df)
+        self.df = pd.concat(dfs)
+        print(type(self.df))
+    
+    def _check_df(self, filename, data_format):
         if 'bool' in str(type(self.df)):
             if filename.endswith('csv') and filename in os.listdir():
                 self.df = pd.read_csv(filename)
                 return True
             elif ".xl" in filename and filename in os.listdir():
-                self.df = pd.read_excel(filename)
+                if data_format == 'tidy':
+                    self.df = pd.read_excel(filename)
+                else:
+                    self.df = self._make_tidy(filename)
                 return True
             else:
                 self.errors.append("Incorrect filename or unsupported filetype")
@@ -97,6 +114,7 @@ class superplot:
             return True
     
     def _cols_in_df(self):
+        print(type(self.df))
         missing_cols = [col for col in [self.x, self.y, self.rep] if col not in self.df.columns]
         if len(missing_cols) != 0:
             if len(missing_cols) == 1:
@@ -106,15 +124,6 @@ class superplot:
             return False
         else:
             return True
-        
-    def _color_wheel(self):
-        colours = ['#FF0000', '#FF7F00', '#FFFF00', '#7FFF00',
-                  '#00FF00', '#00FF7F', '#00FFFF', '#007FFF',
-                  '#0000FF', '#7F00FF', '#FF00FF', '#FF007F']
-        s = len(self.subgroups)
-        idx = int(len(colours) / s)
-        idx = int(len(colours) / s)
-        return colours[::idx][:s]
 
     def get_kde_data(self):
         for group in self.subgroups:
@@ -224,7 +233,7 @@ class superplot:
             mid_val = mid_df[mid_df[self.rep] == a][self.y].values
             reshaped_y = new_wy[i] * total_width  + axis_point
             plt.plot(reshaped_y, reshaped_x, c='k', linewidth=self.sep_linewidth)
-            plt.fill(reshaped_y, reshaped_x, color=self.colours[i])
+            plt.fill(reshaped_y, reshaped_x, color=self.colours[i], label=a)
             # get the mid_val each replicate and find it in reshaped_x
             # then get corresponding point in reshaped_x to plot the points
             if mid_val.size > 0: # account for empty mid_val
@@ -286,7 +295,7 @@ class superplot:
         idx = (np.abs(array - value)).argmin()
         return array[idx]
     
-    def statistics(self, centre_val='mean'):
+    def statistics(self, centre_val='mean', on_plot='yes'):
         """
         1. Get central values for statistics
         2. Check normality
@@ -329,42 +338,38 @@ class superplot:
                     print(f"Mann-Whitney P-value: {p:.3f}")
                     
         # plot statistics if only 2 or 3 groups
-        ax = plt.gca()
-        low, high = ax.get_ylim()
-        span = high - low
-        increment = span * 0.03 # add high to get the new y value
-        if len(self.subgroups) == 2:
-            x1, x2 = 0, 2
-            y = increment + high
-            h = y + increment
-            plt.plot([x1, x1, x2, x2], [y, h, h, y], lw=1, c='k')
-            plt.text((x1+x2)*.5, h, f"P = {p:.3f}", ha='center', va='bottom',
-                     color='k', fontsize=8)
-            plt.ylim((low, high+increment*10))
-        elif len(self.subgroups) == 3:
-            labels = [i._text for i in ax.get_xticklabels()]
-            pairs = ((0, 1), (1, 2), (0, 2))
-            y = increment + high # increment = 3% of the range of the y-axis
-            text_loc = ['center', 'center', 'center']
-            for i,pair in enumerate(pairs):
-                # get posthoc statistic for each comparison
-                condition1, condition2 = [labels[i] for i in pair]
-                pval = posthoc.loc[condition1, condition2]
-                x1, x2 = [i * 2 for i in pair]
-                # calculate values for lines and locating p-values on plot
-                h = y * 1.02
-                y += increment * 5
-                # plot the posthoc p-values and lines
-                plt.plot([x1, x1, x2, x2], [h, y, y, h], lw=1, c='Black')
-                # workaround to deal with comparing first and last groups
-#                if i == 1:
-#                    plt.text((x1+x2)/2.15, y, f"P = {pval:.3f}", ha=text_loc[i],
-#                             va='bottom', color='Black', fontsize=8)
-#                else:
-                plt.text((x1+x2)/2, y, f"P = {pval:.3f}", ha=text_loc[i],
-                         va='bottom', color='Black', fontsize=8)
-            plt.ylim((low, low + span * 1.5))
-        plt.tight_layout()
+        if on_plot == 'yes':
+            ax = plt.gca()
+            low, high = ax.get_ylim()
+            span = high - low
+            increment = span * 0.03 # add high to get the new y value
+            if len(self.subgroups) == 2:
+                x1, x2 = 0, 2
+                y = increment + high
+                h = y + increment
+                plt.plot([x1, x1, x2, x2], [y, h, h, y], lw=1, c='k')
+                plt.text((x1+x2)*.5, h, f"P = {p:.3f}", ha='center', va='bottom',
+                         color='k', fontsize=8)
+                plt.ylim((low, high+increment*10))
+            elif len(self.subgroups) == 3:
+                labels = [i._text for i in ax.get_xticklabels()]
+                pairs = ((0, 1), (1, 2), (0, 2))
+                y = increment + high # increment = 3% of the range of the y-axis
+                text_loc = ['center', 'center', 'center']
+                for i,pair in enumerate(pairs):
+                    # get posthoc statistic for each comparison
+                    condition1, condition2 = [labels[i] for i in pair]
+                    pval = posthoc.loc[condition1, condition2]
+                    x1, x2 = [i * 2 for i in pair]
+                    # calculate values for lines and locating p-values on plot
+                    h = y * 1.02
+                    y += increment * 5
+                    # plot the posthoc p-values and lines
+                    plt.plot([x1, x1, x2, x2], [h, y, y, h], lw=1, c='Black')
+                    plt.text((x1+x2)/2, y, f"P = {pval:.3f}", ha=text_loc[i],
+                             va='bottom', color='Black', fontsize=8)
+                plt.ylim((low, low + span * 1.5))
+            plt.tight_layout()
     
     def _normality(self, data):
         lst = []

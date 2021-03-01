@@ -1,12 +1,15 @@
 # IMPORTANT:        Users must change the following 4 arguments before trying to generate the superplot
+# tidy or untidy format
+data_format = tidy
+
 # variable to display on the x axis
-x: drug
+Condition: drug
 
 # variable to display on the y axis
-y: variable
+Value: variable
 
 # variable used to denote experimental replicates
-replicate_column: replicate
+Replicate: replicate
 
 # csv file or Microsoft Excel file containing data in tidy data format
 filename: demo_data.csv
@@ -33,6 +36,9 @@ middle_vals: mean
 
 # standard deviation (SD, default) or 95% confidence interval (CI) if using median
 error_bars: SD
+
+# overlay statistics on plot. Only works for 2 or 3 conditions.
+statistics: yes
 
 # width of each violinplot. Default value: 0.8
 total_width: 0.8
