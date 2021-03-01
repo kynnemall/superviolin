@@ -20,7 +20,7 @@ setup(
       maintainer_email = "mkenny5@tcd.ie",
       packages = find_packages(),
       entry_points = {
-                      'console_scripts': ['superviolin=plot_cli:cli']
+                      'console_scripts': ['superviolin=superviolin.plot_cli:cli']
                       },
       python_requires = ">=3.6",
       install_requires = [
@@ -31,6 +31,7 @@ setup(
           "pandas",
           "scipy",
           "xlrd",
+          "openpyxl",
           "scikit-posthocs"
           ],
       package_data = {'' : ['demo_data.csv',

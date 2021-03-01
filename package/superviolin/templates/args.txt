@@ -22,13 +22,14 @@ ylabel: REPLACE_ME
 # The following arguments below may be changed as the user desires
 
 # order of the experimental conditions from left to right
+# must be separated by ", " e.g. Control, Drug
 order: None
 
-# use mean (default) or median to position. Default: mean
+# use mean (default) or median to position the scatterpoints over each replicate
 centre_val: mean
 
 # use mean or median from each experimental replicate. Used to calculate the centre_val. Default: median
-middle_vals: median
+middle_vals: mean
 
 # standard deviation (SD, default) or 95% confidence interval (CI) if using median
 error_bars: SD
@@ -42,9 +43,9 @@ linewidth: 1
 # width of the black lines separating replicates in each violin. Default value: 0.5
 sep_linewidth: 0.5
 
-# colours used for each individual replicate. List of potential colours available
+# colours used for each individual replicates. List of potential colours available
 # at https://matplotlib.org/stable/gallery/color/named_colors.html
-# under the "CSS Colors" heading. Separate colours by ', '
+# under the "CSS Colors" heading. Separate colours by ", " e.g. red, blue, green
 # alternatively, use a colour map from
 # https://matplotlib.org/stable/tutorials/colors/colormaps.html
 cmap: Set2

@@ -1,11 +1,10 @@
 ### Superplots for visualizing dense datasets ###
 
-![Current exemplary superplot](superplot_v0-7.png "Violin SuperPlot example")
+![Current exemplary superplot](Violin_SuperPlot_v0-8.svg "Violin SuperPlot example")
 
 This work builds upon the SuperPlots proposed by Lord et al. (2020) in "SuperPlots: Communicating reproducibility and variability in cell biology". We propose replacing the underlying beeswarm plot with a modified violinplot while keeping the error bars and scatterpoints for each replicate mean/median. This modified SuperPlot serves to improve readabiliity of dense datasets and allow rapid interpretation of the contribution of cell-level data to the summary statistics.
 
 #### To-do list ####
-* Optimize scatterpoint size
 * Write manual for non-programmers
 * Include docstrings for functions
 
@@ -20,4 +19,5 @@ This work builds upon the SuperPlots proposed by Lord et al. (2020) in "SuperPlo
 * Add statistics to top of plot and make it optional for the user
 * Output statistics (ANOVA and Tukey for normal data; Kruskal and Mann-Whitney for non-normal data)
 * Display error messages where appropriate
+* Optimize scatterpoint size
 * Re-evaluate histogram stacking implementation if normalization is not already involved. UPDATE: histograms are normalized and stacking is working

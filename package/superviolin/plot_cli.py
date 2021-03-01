@@ -13,7 +13,7 @@ import click
 import pandas as pd
 import matplotlib.pyplot as plt
 from appdirs import AppDirs
-from plot import superplot
+from superviolin.plot import superplot
 
 def process_txt(txt):
     arg_dict = {}
