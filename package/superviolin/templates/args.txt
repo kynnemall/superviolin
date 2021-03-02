@@ -1,16 +1,16 @@
 
 # IMPORTANT: Users must change the following 6 arguments before trying to generate the superplot
 # tidy or untidy format
-data_format = tidy
+data_format: tidy
 
 # variable to display on the x axis
-Condition: REPLACE_ME
+condition: REPLACE_ME
 
 # variable to display on the y axis
-Value: REPLACE_ME
+value: REPLACE_ME
 
 # variable used to denote experimental replicates
-Replicate: REPLACE_ME
+replicate: REPLACE_ME
 
 # csv file or Microsoft Excel file containing data in tidy data format. Include file extension in the name
 filename: REPLACE_ME
@@ -31,7 +31,7 @@ order: None
 # use mean (default) or median to position the scatterpoints over each replicate
 centre_val: mean
 
-# use mean or median from each experimental replicate. Used to calculate the centre_val. Default: median
+# use mean or median from each experimental replicate. Used to calculate the centre_val. Default: mean
 middle_vals: mean
 
 # standard deviation (SD, default) or 95% confidence interval (CI) if using median

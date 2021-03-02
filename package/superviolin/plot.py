@@ -21,18 +21,25 @@ params['axes.spines.top'] = False
 params['figure.dpi'] = 300
 
 class superplot:    
-    def __init__(self, Condition, Value, Replicate, filename, data_format, order="None",
+    def __init__(self, condition, value, replicate, filename, data_format, order="None",
                  centre_val="mean", middle_vals="mean", error_bars="SD", statistics='no',
                  ylimits='None', total_width=0.8, linewidth=1, dataframe=False, dpi=300,
                  sep_linewidth=1, xlabel='', ylabel='', cmap='Set2'):
         self.errors = []
         self.df = dataframe
-        self.x = Condition
-        self.y = Value
-        self.rep = Replicate
+        self.x = condition
+        self.y = value
+        self.rep = replicate
+        self.linewidth = linewidth
         self.sep_linewidth = sep_linewidth
         self.xlabel = xlabel
         self.ylabel = ylabel
+        self.middle_vals = middle_vals
+        self.centre_val = centre_val
+        self.statistics = statistics
+        self.ylimits = ylimits
+        self.total_width = total_width
+        self.error_bars = error_bars
         params['savefig.dpi'] = dpi
         if self.xlabel == 'REPLACE_ME':
             self.xlabel = ''
@@ -66,12 +73,14 @@ class superplot:
                     self.colours = [self.cm(i / 8) for i in range(len(self.unique_reps))]
                 if len(self.colours) < len(self.unique_reps):
                     self.errors.append("Not enough colours for each replicate")
+                    
+    def generate_plot(self):
         # if no errors exist, create the superplot. Otherwise, report errors
         if len(self.errors) == 0:
             self.get_kde_data()
-            self.plot_subgroups(centre_val, middle_vals, ylimits,
-                                error_bars, total_width, linewidth)
-            self.statistics(centre_val, on_plot=statistics)
+            self.plot_subgroups(self.centre_val, self.middle_vals, self.error_bars,
+                                self.ylimits, self.total_width, self.linewidth)
+            self.get_statistics(self.centre_val, on_plot=self.statistics)
         else:
             if len(self.errors) == 1:
                 print("Caught 1 error")
@@ -258,6 +267,18 @@ class superplot:
             lbls.append(a)            
             # calculate the mean/median value for all replicates of the variable
             sub = self.df[self.df[self.x] == a]
+            if centre_val == 'robust':
+                # loop through replicates in sub
+                subs = []
+                for rep in sub[self.rep].unique():
+                    s = sub[sub[self.rep] == rep]
+                    lower = np.percentile(s[self.y], 2.5)
+                    upper = np.percentile(s[self.y], 97.5)
+                    s = s[(s[self.y] > lower) & (s[self.y] < upper)]
+                    subs.append(s)
+                sub = pd.concat(subs)
+                centre_val = 'mean'
+            # calculate mean from remaining data
             means = sub.groupby(self.rep, as_index=False).agg({self.y : centre_val})
             plt_df = sub.groupby(self.x, as_index=False).agg({self.y : middle_vals})
             self._single_subgroup_plot(a, i*2, mid_df=means, total_width=total_width)
@@ -286,14 +307,15 @@ class superplot:
         plt.ylabel(self.ylabel)
         plt.tight_layout()
         if ylimits != 'None':
-            plt.ylim(ylimits.split(', '))
+            lims = (float(i) for i in ylimits.split(', '))
+            plt.ylim(lims)
         
     def _find_nearest(self, array, value):
         array = np.asarray(array)
         idx = (np.abs(array - value)).argmin()
         return array[idx]
     
-    def statistics(self, centre_val='mean', on_plot='yes'):
+    def get_statistics(self, centre_val='mean', on_plot='yes'):
         """
         1. Get central values for statistics
         2. Check normality
@@ -301,7 +323,10 @@ class superplot:
         4. Generate statistics
         5. Plot the statistics if only 2 or 3 groups to compare
         """
-        means = self.df.groupby([self.rep, self.x], as_index=False).agg({self.y : centre_val})
+        if centre_val == 'robust':
+            means = self.df.groupby([self.rep, self.x], as_index=False).agg({self.y : 'mean'})
+        else:
+            means = self.df.groupby([self.rep, self.x], as_index=False).agg({self.y : centre_val})
         normal = self._normality(means)
         data = [list(means[means[self.x] == i][self.y]) for i in means[self.x].unique()]
         if len(self.subgroups) > 2:

@@ -90,7 +90,8 @@ def make_superplot():
     if not d:
         click.echo("args.txt not found in current folder")
     else:
-        superplot(**d)
+        violin = superplot(**d)
+        violin.generate_plot()
         plt.show()
 
 @cli.command('demo', short_help="Make demo superplot")
@@ -98,7 +99,8 @@ def demo():
     d = get_args(demonstration=True)
     bytedata = pkgutil.get_data(__name__, "templates/demo_data.csv")
     df = pd.read_csv(io.BytesIO(bytedata))
-    superplot(**d, dataframe=df)
+    violin = superplot(**d, dataframe=df)
+    violin.generate_plot()
     plt.show()
     
 # extra lines are added to args.txt in templates folder when this command is used
