@@ -23,7 +23,7 @@ params['figure.dpi'] = 300
 class superplot:    
     def __init__(self, Condition, Value, Replicate, filename, data_format, order="None",
                  centre_val="mean", middle_vals="mean", error_bars="SD", statistics='no',
-                 total_width=0.8, linewidth=1, dataframe=False, dpi=300,
+                 ylimits='None', total_width=0.8, linewidth=1, dataframe=False, dpi=300,
                  sep_linewidth=1, xlabel='', ylabel='', cmap='Set2'):
         self.errors = []
         self.df = dataframe
@@ -43,7 +43,7 @@ class superplot:
         if self._check_df(filename, data_format):
             # ensure columns are all present in the dataframe
             if self._cols_in_df():
-                # force x and replicate_column to string types
+                # force Condition and Replicate to string types
                 self.df[self.x] = self.df[self.x].astype(str)
                 self.df[self.rep] = self.df[self.rep].astype(str)
                 # organize subgroups
@@ -65,14 +65,12 @@ class superplot:
 #                    self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.unique_reps))]
                     self.colours = [self.cm(i / 8) for i in range(len(self.unique_reps))]
                 if len(self.colours) < len(self.unique_reps):
-                    print(len(self.colours))
-                    print(len(self.unique_reps))
                     self.errors.append("Not enough colours for each replicate")
         # if no errors exist, create the superplot. Otherwise, report errors
         if len(self.errors) == 0:
             self.get_kde_data()
-            self.plot_subgroups(centre_val, middle_vals, error_bars,
-                                  total_width, linewidth)
+            self.plot_subgroups(centre_val, middle_vals, ylimits,
+                                error_bars, total_width, linewidth)
             self.statistics(centre_val, on_plot=statistics)
         else:
             if len(self.errors) == 1:
@@ -94,7 +92,6 @@ class superplot:
                 df[self.rep] = s
                 dfs.append(df)
         self.df = pd.concat(dfs)
-        print(type(self.df))
     
     def _check_df(self, filename, data_format):
         if 'bool' in str(type(self.df)):
@@ -105,7 +102,7 @@ class superplot:
                 if data_format == 'tidy':
                     self.df = pd.read_excel(filename)
                 else:
-                    self.df = self._make_tidy(filename)
+                    self._make_tidy(filename)
                 return True
             else:
                 self.errors.append("Incorrect filename or unsupported filetype")
@@ -114,7 +111,6 @@ class superplot:
             return True
     
     def _cols_in_df(self):
-        print(type(self.df))
         missing_cols = [col for col in [self.x, self.y, self.rep] if col not in self.df.columns]
         if len(missing_cols) != 0:
             if len(missing_cols) == 1:
@@ -248,8 +244,8 @@ class superplot:
                             zorder=2, marker='o', s=scatter_size)
         plt.plot(outline_x, outline_y, color='Black', linewidth=linewidth)
         
-    def plot_subgroups(self, centre_val, middle_vals,
-                       error_bars, total_width, linewidth):
+    def plot_subgroups(self, centre_val, middle_vals, error_bars,
+                       ylimits, total_width, linewidth):
         width = 1 + len(self.subgroups) / 2
         height = 5 / 2.54
         plt.figure(figsize=(width, height))
@@ -289,6 +285,8 @@ class superplot:
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
         plt.tight_layout()
+        if ylimits != 'None':
+            plt.ylim(ylimits.split(', '))
         
     def _find_nearest(self, array, value):
         array = np.asarray(array)

@@ -40,6 +40,9 @@ error_bars: SD
 # overlay statistics on plot. Only works for 2 or 3 conditions.
 statistics: yes
 
+# minimum and maximum y values to display on the y-axis e.g. 1, 5. Default value: None
+ylimits: None
+
 # width of each violinplot. Default value: 0.8
 total_width: 0.8
 
