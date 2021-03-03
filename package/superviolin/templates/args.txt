@@ -1,7 +1,19 @@
+# IMPORTANT: before trying to generate the superplot
+# Users must change the "filename" and "data_format" arguments if using an "untidy" format. If the format is tidy,
+# also change "condition", "value", and "replicate" to match the column names in your dataset.
+# X and Y labels will not be plotted by default. Change these arguments according to your preference.
 
-# IMPORTANT: Users must change the following 6 arguments before trying to generate the superplot
-# tidy or untidy format
+# csv file or Microsoft Excel file containing data in tidy data format. Include file extension in the name
+filename: REPLACE_ME
+
+# tidy or untidy format. Refer to documentation for more information
 data_format: tidy
+
+# the label for the x axis. To have no label on the x axis, don't change the default value.
+xlabel: REPLACE_ME
+
+# label for the y axis. To have no label on the y axis, don't change the default value.
+ylabel: REPLACE_ME
 
 # variable to display on the x axis
 condition: REPLACE_ME
@@ -11,15 +23,6 @@ value: REPLACE_ME
 
 # variable used to denote experimental replicates
 replicate: REPLACE_ME
-
-# csv file or Microsoft Excel file containing data in tidy data format. Include file extension in the name
-filename: REPLACE_ME
-
-# the label for the x axis. To have no label on the x axis, don't change the default value.
-xlabel: REPLACE_ME
-
-# label for the y axis. To have no label on the y axis, don't change the default value.
-ylabel: REPLACE_ME
 
 
 # The following arguments below may be changed as the user desires

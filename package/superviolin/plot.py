@@ -21,15 +21,16 @@ params['axes.spines.top'] = False
 params['figure.dpi'] = 300
 
 class superplot:    
-    def __init__(self, condition, value, replicate, filename, data_format, order="None",
-                 centre_val="mean", middle_vals="mean", error_bars="SD", statistics='no',
-                 ylimits='None', total_width=0.8, linewidth=1, dataframe=False, dpi=300,
-                 sep_linewidth=1, xlabel='', ylabel='', cmap='Set2'):
+    def __init__(self, filename, data_format, condition='condition', value='value',
+                 replicate='replicate', order="None", centre_val="mean", middle_vals="mean",
+                 error_bars="SD", statistics='no', ylimits='None', total_width=0.8,
+                 linewidth=1, dataframe=False, dpi=300, sep_linewidth=1, xlabel='',
+                 ylabel='', cmap='Set2'):
         self.errors = []
         self.df = dataframe
-        self.x = condition
-        self.y = value
-        self.rep = replicate
+        self.x = condition if condition != 'REPLACE_ME' else 'condition'
+        self.y = value if value != 'REPLACE_ME' else 'value'
+        self.rep = replicate if replicate != 'REPLACE_ME' else 'replicate'
         self.linewidth = linewidth
         self.sep_linewidth = sep_linewidth
         self.xlabel = xlabel
@@ -45,6 +46,9 @@ class superplot:
             self.xlabel = ''
         if self.ylabel == 'REPLACE_ME':
             self.ylabel = ''
+            
+        qualitative = ['Pastel1', 'Pastel2', 'Paired', 'Accent', 'Dark2', 'Set1',
+                       'Set2', 'Set3', 'tab10', 'tab20', 'tab20b', 'tab20c']
         
         # ensure dataframe is loaded
         if self._check_df(filename, data_format):
@@ -65,12 +69,14 @@ class superplot:
     
                 self.unique_reps = tuple(self.df[self.rep].unique())
                 # make sure there's enough colours for each subgroup when instantiating
-                if ',' in cmap:
+                if ', ' in cmap:
                     self.colours = tuple(cmap.split(', '))
                 else:
                     self.cm = plt.get_cmap(cmap)
-#                    self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.unique_reps))]
-                    self.colours = [self.cm(i / 8) for i in range(len(self.unique_reps))]
+                    if cmap in qualitative:
+                        self.colours = [self.cm(i / 8) for i in range(len(self.unique_reps))]
+                    else:
+                        self.colours = [self.cm((i+2) / (len(self.unique_reps)+2)) for i in range(len(self.unique_reps))]
                 if len(self.colours) < len(self.unique_reps):
                     self.errors.append("Not enough colours for each replicate")
                     
@@ -79,8 +85,9 @@ class superplot:
         if len(self.errors) == 0:
             self.get_kde_data()
             self.plot_subgroups(self.centre_val, self.middle_vals, self.error_bars,
-                                self.ylimits, self.total_width, self.linewidth)
-            self.get_statistics(self.centre_val, on_plot=self.statistics)
+                                self.ylimits, self.total_width, self.linewidth,
+                                self.statistics)
+            self.get_statistics(self.centre_val, self.statistics, self.ylimits)
         else:
             if len(self.errors) == 1:
                 print("Caught 1 error")
@@ -254,7 +261,7 @@ class superplot:
         plt.plot(outline_x, outline_y, color='Black', linewidth=linewidth)
         
     def plot_subgroups(self, centre_val, middle_vals, error_bars,
-                       ylimits, total_width, linewidth):
+                       ylimits, total_width, linewidth, statistics):
         width = 1 + len(self.subgroups) / 2
         height = 5 / 2.54
         plt.figure(figsize=(width, height))
@@ -267,6 +274,8 @@ class superplot:
             lbls.append(a)            
             # calculate the mean/median value for all replicates of the variable
             sub = self.df[self.df[self.x] == a]
+            # robust mean calculates mean using data
+            # between the 2.5 and 97.5 percentiles
             if centre_val == 'robust':
                 # loop through replicates in sub
                 subs = []
@@ -306,7 +315,7 @@ class superplot:
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
         plt.tight_layout()
-        if ylimits != 'None':
+        if ylimits != 'None' and statistics != 'yes':
             lims = (float(i) for i in ylimits.split(', '))
             plt.ylim(lims)
         
@@ -315,7 +324,7 @@ class superplot:
         idx = (np.abs(array - value)).argmin()
         return array[idx]
     
-    def get_statistics(self, centre_val='mean', on_plot='yes'):
+    def get_statistics(self, centre_val='mean', on_plot='yes', ylimits=None):
         """
         1. Get central values for statistics
         2. Check normality
@@ -392,6 +401,9 @@ class superplot:
                     plt.text((x1+x2)/2, y, f"P = {pval:.3f}", ha=text_loc[i],
                              va='bottom', color='Black', fontsize=8)
                 plt.ylim((low, low + span * 1.5))
+            if ylimits != 'None':
+                lims = (float(i) for i in ylimits.split(', '))
+                plt.ylim(lims)
             plt.tight_layout()
     
     def _normality(self, data):
