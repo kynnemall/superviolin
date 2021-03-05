@@ -204,7 +204,7 @@ class superplot:
         return arr
     
     def _single_subgroup_plot(self, group, axis_point, mid_df,
-                              total_width=0.8, linewidth=1):
+                              total_width, linewidth):
         # select scatter size based on number of replicates
         scatter_sizes = [14, 12, 10, 8]
         if len(self.unique_reps) < 3:
@@ -230,9 +230,8 @@ class superplot:
         # use last array to plot the outline
         outline_y = np.append(px[-1], np.flipud(px[-1]))
         outline_x = np.append(norm_wy[-1], np.flipud(norm_wy[-1]) * -1) * total_width + axis_point
-        """
-        Temporary fix; find original source of the bug and correct when time allows
-        """
+        
+        # Temporary fix; find original source of the bug and correct when time allows
         if outline_x[0] != outline_x[-1]:
             xval = round(outline_x[0])
             yval = outline_y[0]
@@ -244,8 +243,10 @@ class superplot:
             reshaped_x = np.append(px[i-1], np.flipud(px[i-1]))
             mid_val = mid_df[mid_df[self.rep] == a][self.y].values
             reshaped_y = new_wy[i] * total_width  + axis_point
+            # plot separating lines and stripes
             plt.plot(reshaped_y, reshaped_x, c='k', linewidth=self.sep_linewidth)
-            plt.fill(reshaped_y, reshaped_x, color=self.colours[i], label=a)
+            plt.fill(reshaped_y, reshaped_x, color=self.colours[i],
+                     label=a, linewidth=self.sep_linewidth)
             # get the mid_val each replicate and find it in reshaped_x
             # then get corresponding point in reshaped_x to plot the points
             if mid_val.size > 0: # account for empty mid_val
@@ -280,17 +281,19 @@ class superplot:
                 # loop through replicates in sub
                 subs = []
                 for rep in sub[self.rep].unique():
-                    s = sub[sub[self.rep] == rep]
+                    # drop rows containing NaN values as they mess up the subsetting
+                    s = sub[sub[self.rep] == rep].dropna()
                     lower = np.percentile(s[self.y], 2.5)
                     upper = np.percentile(s[self.y], 97.5)
-                    s = s[(s[self.y] > lower) & (s[self.y] < upper)]
+                    s = s.query(f"{lower} <= {self.y} <= {upper}")
                     subs.append(s)
                 sub = pd.concat(subs)
                 centre_val = 'mean'
             # calculate mean from remaining data
             means = sub.groupby(self.rep, as_index=False).agg({self.y : centre_val})
             plt_df = sub.groupby(self.x, as_index=False).agg({self.y : middle_vals})
-            self._single_subgroup_plot(a, i*2, mid_df=means, total_width=total_width)
+            self._single_subgroup_plot(a, i*2, mid_df=means, total_width=total_width,
+                                       linewidth=linewidth)
             # get mean or median line of the skeleton plot
             if centre_val == 'mean':
                 mid_val = plt_df[self.y].mean()
