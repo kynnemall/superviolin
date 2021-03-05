@@ -20,7 +20,7 @@ params['axes.spines.right'] = False
 params['axes.spines.top'] = False
 params['figure.dpi'] = 300
 
-class superplot:    
+class superplot:
     def __init__(self, filename, data_format, condition='condition', value='value',
                  replicate='replicate', order="None", centre_val="mean", middle_vals="mean",
                  error_bars="SD", statistics='no', ylimits='None', total_width=0.8,
@@ -81,6 +81,14 @@ class superplot:
                     self.errors.append("Not enough colours for each replicate")
                     
     def generate_plot(self):
+        """
+        Generate Violin SuperPlot if the errors list attribute is empty
+
+        Returns
+        -------
+        None.
+
+        """
         # if no errors exist, create the superplot. Otherwise, report errors
         if len(self.errors) == 0:
             self.get_kde_data()
@@ -97,6 +105,20 @@ class superplot:
                 print(f"\t{i}. {e}")
                             
     def _make_tidy(self, xl_file):
+        """
+        Convert excel workbook from sheets containing replicate data to a tidy
+        data format for generating Violin SuperPlots
+
+        Parameters
+        ----------
+        xl_file : string
+            name of the excel file being examined
+
+        Returns
+        -------
+        None.
+
+        """
         xl = pd.ExcelFile(xl_file)
         sheets = xl.sheet_names # replicates
         dfs = []
@@ -110,6 +132,24 @@ class superplot:
         self.df = pd.concat(dfs)
     
     def _check_df(self, filename, data_format):
+        """
+        
+
+        Parameters
+        ----------
+        filename : string
+            name of the file containing the data for the Violin SuperPlot.
+            Must be CSV or an Excel workbook
+        data_format : string
+            either "tidy" or "untidy" based on format of the data
+
+        Returns
+        -------
+        bool
+            True, if a Pandas DataFrame object was created using the filename,
+            else False
+
+        """
         if 'bool' in str(type(self.df)):
             if filename.endswith('csv') and filename in os.listdir():
                 self.df = pd.read_csv(filename)
@@ -127,6 +167,16 @@ class superplot:
             return True
     
     def _cols_in_df(self):
+        """
+        Check if all column names specified by the user are present in the 
+        self.df DataFrame
+
+        Returns
+        -------
+        bool
+            True if all supplied column names are present in the df attribute
+
+        """
         missing_cols = [col for col in [self.x, self.y, self.rep] if col not in self.df.columns]
         if len(missing_cols) != 0:
             if len(missing_cols) == 1:
@@ -138,6 +188,16 @@ class superplot:
             return True
 
     def get_kde_data(self):
+        """
+        Fit kernel density estimators to each replicate of each condition,
+        generate list of x and y co-ordinates of the histogram,
+        stack them, and add the data to the subgroup_dict attribute
+
+        Returns
+        -------
+        None.
+
+        """
         for group in self.subgroups:
             px = []
             norm_wy = []
@@ -196,6 +256,23 @@ class superplot:
             self.subgroup_dict[group]['px'] = px
             
     def _interpolate_nan(self, arr):
+        """
+        Interpolate NaN values in numpy array of x co-ordinates of each fitted
+        kernel density estimator to prevent gaps in the stripes of each Violin
+        SuperPlot
+
+        Parameters
+        ----------
+        arr : numpy array
+            array of x co-ordinates of a fitted kde
+
+        Returns
+        -------
+        arr : TYPE
+            array of x co-ordinates with interpolation for each NaN value
+            if present
+
+        """
         diffs = np.diff(arr, axis=0)
         median_val = np.nanmedian(diffs)
         nan_idx = np.where(np.isnan(arr))
@@ -205,8 +282,31 @@ class superplot:
     
     def _single_subgroup_plot(self, group, axis_point, mid_df,
                               total_width, linewidth):
+        """
+        Plot a Violin SuperPlot for the given condition
+
+        Parameters
+        ----------
+        group : string
+            Categorical condition to be plotted on the x axis
+        axis_point : integer
+            The point on the x-axis over which the Violin SuperPlot will be
+            centred
+        mid_df : Pandas DataFrame
+            Dataframe containing the middle values of each replicate
+        total_width : float
+            Half the width of each Violin SuperPlot
+        linewidth : float
+            Width value for the outlines of each Violin SuperPlot and the 
+            summary statistics skeleton plot
+
+        Returns
+        -------
+        None.
+
+        """
         # select scatter size based on number of replicates
-        scatter_sizes = [14, 12, 10, 8]
+        scatter_sizes = [10, 8, 6, 4]
         if len(self.unique_reps) < 3:
             num = 0 
         elif len(self.unique_reps) > len(scatter_sizes):
@@ -261,8 +361,37 @@ class superplot:
                             zorder=2, marker='o', s=scatter_size)
         plt.plot(outline_x, outline_y, color='Black', linewidth=linewidth)
         
-    def plot_subgroups(self, centre_val, middle_vals, error_bars,
-                       ylimits, total_width, linewidth, statistics):
+    def plot_subgroups(self, centre_val, middle_vals, error_bars, ylimits,
+                       total_width, linewidth, statistics):
+        """
+        Plot all subgroups of the df attribute
+
+        Parameters
+        ----------
+        centre_val : string
+            Central measure used for the skeleton plot. Either mean or median
+        middle_vals : string
+            Central measure of each replicate. Either mean, median, or robust
+            mean
+        error_bars : string
+            Method for displaying error bars in the skeleton plot. Either SD 
+            for standard deviation or CI for 95% confidence intervals
+        ylimits : string
+            User-specified ylimits in the form (lower, upper) where lower and 
+            upper are float values
+        total_width : float
+            Half the width of each Violin SuperPlot
+        linewidth : float
+            Width value for the outlines of each Violin SuperPlot and the 
+            summary statistics skeleton plot
+        statistics : string
+            Either "yes" or "no" to overlay the statistics on the plot
+
+        Returns
+        -------
+        None.
+
+        """
         width = 1 + len(self.subgroups) / 2
         height = 5 / 2.54
         plt.figure(figsize=(width, height))
@@ -277,7 +406,7 @@ class superplot:
             sub = self.df[self.df[self.x] == a]
             # robust mean calculates mean using data
             # between the 2.5 and 97.5 percentiles
-            if centre_val == 'robust':
+            if middle_vals == 'robust':
                 # loop through replicates in sub
                 subs = []
                 for rep in sub[self.rep].unique():
@@ -288,17 +417,16 @@ class superplot:
                     s = s.query(f"{lower} <= {self.y} <= {upper}")
                     subs.append(s)
                 sub = pd.concat(subs)
-                centre_val = 'mean'
+                middle_vals = 'mean'
             # calculate mean from remaining data
-            means = sub.groupby(self.rep, as_index=False).agg({self.y : centre_val})
-            plt_df = sub.groupby(self.x, as_index=False).agg({self.y : middle_vals})
+            means = sub.groupby(self.rep, as_index=False).agg({self.y : middle_vals})
             self._single_subgroup_plot(a, i*2, mid_df=means, total_width=total_width,
                                        linewidth=linewidth)
             # get mean or median line of the skeleton plot
             if centre_val == 'mean':
-                mid_val = plt_df[self.y].mean()
+                mid_val = means[self.y].mean()
             else:
-                mid_val = plt_df[self.y].median()
+                mid_val = means[self.y].median()
             # get error bars for the skeleton plot
             if error_bars == "SD":
                 upper = mid_val + means[self.y].std()
@@ -323,17 +451,48 @@ class superplot:
             plt.ylim(lims)
         
     def _find_nearest(self, array, value):
+        """
+        Helper function to find the value of an array nearest to the input
+        value argument
+
+        Parameters
+        ----------
+        array : numpy array
+            array of x co-ordinates from the fitted kde
+        value : float
+            the middle value of 
+
+        Returns
+        -------
+        float
+            nearest value in array to the input value argument
+
+        """
         array = np.asarray(array)
         idx = (np.abs(array - value)).argmin()
         return array[idx]
     
-    def get_statistics(self, centre_val='mean', on_plot='yes', ylimits=None):
+    def get_statistics(self, centre_val='mean', on_plot='yes', ylimits='None'):
         """
-        1. Get central values for statistics
-        2. Check normality
-        3. Check for more than 2 groups
-        4. Generate statistics
-        5. Plot the statistics if only 2 or 3 groups to compare
+        Determine appropriate statistics for the dataset, output statistics in
+        txt file if there are 3 or more groups, and overlay on plot (optional).
+
+        Parameters
+        ----------
+        centre_val : string, optional
+            Central measure used for the skeleton plot. Either mean or median.
+            The default is 'mean'.
+        on_plot : string, optional
+            Either "yes" or "no" to put overlay the statistics on the plot.
+            The default is 'yes'.
+        ylimits : string, optional
+            User-specified ylimits in the form (lower, upper) where lower and 
+            upper are float values. The default is 'None'.
+
+        Returns
+        -------
+        None.
+
         """
         if centre_val == 'robust':
             means = self.df.groupby([self.rep, self.x], as_index=False).agg({self.y : 'mean'})
@@ -410,6 +569,20 @@ class superplot:
             plt.tight_layout()
     
     def _normality(self, data):
+        """
+        Rough estimation of normality in the dataset
+
+        Parameters
+        ----------
+        data : Pandas DataFrame
+            Contains means for each replicate
+
+        Returns
+        -------
+        bool
+            True if most of the data is normally-distributed, else False.
+
+        """
         lst = []
         for group in self.subgroups:
             group_var = data[data[self.x] == group][self.y]
