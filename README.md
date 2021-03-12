@@ -1,4 +1,4 @@
-## Violin SuperPlots for visualizing dense datasets ##
+# Violin SuperPlots: Visualising replicate heterogeneity in large datasets #
 
 ![Current exemplary superplot](Violin_SuperPlot_v0-8.png "Violin SuperPlot example")
 
