@@ -37,6 +37,10 @@ middle_vals: mean
 # standard deviation (SD, default) or 95% confidence interval (CI) if using median
 error_bars: SD
 
+# bandwidth of the fitted kernel density estimators. Determines smoothening of the
+# stripes in each violin. "None" is the default value, which means an "optimal" # factor will be calculated
+bw: None
+
 # overlay statistics on plot. Only works for 2 or 3 conditions.
 statistics: yes
 

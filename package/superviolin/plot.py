@@ -25,7 +25,7 @@ class superplot:
                  replicate='replicate', order="None", centre_val="mean", middle_vals="mean",
                  error_bars="SD", statistics='no', ylimits='None', total_width=0.8,
                  linewidth=1, dataframe=False, dpi=300, sep_linewidth=1, xlabel='',
-                 ylabel='', cmap='Set2'):
+                 ylabel='', cmap='Set2', bw=None):
         self.errors = []
         self.df = dataframe
         self.x = condition if condition != 'REPLACE_ME' else 'condition'
@@ -41,6 +41,10 @@ class superplot:
         self.ylimits = ylimits
         self.total_width = total_width
         self.error_bars = error_bars
+        if bw == 'None':
+            self.bw = None
+        else:
+            self.bw = bw
         params['savefig.dpi'] = dpi
         if self.xlabel == 'REPLACE_ME':
             self.xlabel = ''
@@ -80,9 +84,10 @@ class superplot:
                 if len(self.colours) < len(self.unique_reps):
                     self.errors.append("Not enough colours for each replicate")
                     
-    def generate_plot(self):
+    def generate_plot(self, bw=None):
         """
-        Generate Violin SuperPlot if the errors list attribute is empty
+        Generate Violin SuperPlot by calling get_kde_data, plot_subgroups,
+        and get_statistics if the errors list attribute is empty.
 
         Returns
         -------
@@ -91,7 +96,7 @@ class superplot:
         """
         # if no errors exist, create the superplot. Otherwise, report errors
         if len(self.errors) == 0:
-            self.get_kde_data()
+            self.get_kde_data(bw)
             self.plot_subgroups(self.centre_val, self.middle_vals, self.error_bars,
                                 self.ylimits, self.total_width, self.linewidth,
                                 self.statistics)
@@ -187,11 +192,18 @@ class superplot:
         else:
             return True
 
-    def get_kde_data(self):
+    def get_kde_data(self, bw=None):
         """
         Fit kernel density estimators to each replicate of each condition,
         generate list of x and y co-ordinates of the histogram,
         stack them, and add the data to the subgroup_dict attribute
+
+        Parameters
+        ----------
+        bw : float
+            The percent smoothing to apply to the srtipe outlines. Values should
+            be between 0 and 1. The default value will result in an "optimal" value
+            being used to smoothen the stripes.
 
         Returns
         -------
@@ -221,7 +233,7 @@ class superplot:
                     arr = np.array(sub)
                     # remove nan or inf values which could cause a kde ValueError
                     arr = arr[~(np.isnan(arr))]
-                    kde = gaussian_kde(arr)
+                    kde = gaussian_kde(arr, bw_method=bw)
                     kde_points = kde.evaluate(points)
                     kde_points = kde_points - np.nanmin(kde_points)
                     # use min and max to make the kde_points outside that dataset = 0
@@ -580,7 +592,7 @@ class superplot:
         Returns
         -------
         bool
-            True if most of the data is normally-distributed, else False.
+            True, if most of the data is normally-distributed, else False.
 
         """
         lst = []
