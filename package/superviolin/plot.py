@@ -22,7 +22,7 @@ params['figure.dpi'] = 300
 
 class superplot:
     def __init__(self, filename, data_format, condition='condition', value='value',
-                 replicate='replicate', order="None", centre_val="mean", middle_vals="mean",
+                 replicate='replicate', order=None, centre_val="mean", middle_vals="mean",
                  error_bars="SD", statistics='no', ylimits='None', total_width=0.8,
                  linewidth=1, dataframe=False, dpi=300, sep_linewidth=1, xlabel='',
                  ylabel='', cmap='Set2', bw=None):

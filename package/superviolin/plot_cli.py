@@ -77,7 +77,7 @@ def init():
         for l in txt_data:
             if l != '\n':
                 txt_lines.append(l)
-                txt_lines.append('\n')
+                # txt_lines.append('\n')
         txt_data = ''.join(txt_lines)
     with open("args.txt", "w") as f:
         f.write(txt_data)
@@ -102,28 +102,3 @@ def demo():
     violin = superplot(**d, dataframe=df)
     violin.generate_plot()
     plt.show()
-    
-# extra lines are added to args.txt in templates folder when this command is used
-# either fix or remove when released on PyPI 
-#@cli.command('prefs', short_help="Change default arguments in args.txt template")
-#def prefs():
-#    user_data_args = make_user_data_dir()
-#    with open(user_data_args, 'r+') as f:
-#        click.echo(user_data_args)
-#        lines = f.readlines()
-#        arg_dict = get_args(preferences=True)
-#        for i,l in enumerate(lines):
-#            if not l.startswith('#') and ':' in l and 'REPLACE' not in l:
-#                k, _ = l.split(': ')
-#                old = f"{k}: {arg_dict[k]}"
-#                n = input(f"{old}, do you want to replace it?\n If not, just press enter\n")
-#                if not bool(n):
-#                    click.echo(f"{k} unchanged")
-#                else:
-#                    new = f"{k}: {n}"
-#                    click.echo(f"{arg_dict[k]} replaced with {n}")
-#                    lines[i] = new
-#        f.seek(0)
-#        txt = ''.join(lines)
-#        f.write(txt)
-#    click.echo("\nNew settings successfully stored")
