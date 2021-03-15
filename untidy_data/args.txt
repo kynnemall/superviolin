@@ -54,6 +54,12 @@ middle_vals: robust
 
 error_bars: SD
 
+# bandwidth of the fitted kernel density estimators. Determines smoothening of the
+
+# stripes in each violin. "None" is the default value, which means an "optimal" # factor will be calculated
+
+bw: 0.05
+
 # overlay statistics on plot. Only works for 2 or 3 conditions.
 
 statistics: yes
