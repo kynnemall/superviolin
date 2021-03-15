@@ -77,7 +77,8 @@ def init():
         for l in txt_data:
             if l != '\n':
                 txt_lines.append(l)
-                # txt_lines.append('\n')
+            if not l.startswith('#'):
+                txt_lines.append('\n')
         txt_data = ''.join(txt_lines)
     with open("args.txt", "w") as f:
         f.write(txt_data)
@@ -90,6 +91,7 @@ def make_superplot():
     if not d:
         click.echo("args.txt not found in current folder")
     else:
+        print(type(d['bw']))
         violin = superplot(**d)
         violin.generate_plot()
         plt.show()

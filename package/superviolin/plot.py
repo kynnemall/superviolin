@@ -41,9 +41,7 @@ class superplot:
         self.ylimits = ylimits
         self.total_width = total_width
         self.error_bars = error_bars
-        if bw == 'None':
-            self.bw = None
-        else:
+        if bw != None:
             self.bw = bw
         params['savefig.dpi'] = dpi
         if self.xlabel == 'REPLACE_ME':
@@ -84,7 +82,7 @@ class superplot:
                 if len(self.colours) < len(self.unique_reps):
                     self.errors.append("Not enough colours for each replicate")
                     
-    def generate_plot(self, bw=None):
+    def generate_plot(self):
         """
         Generate Violin SuperPlot by calling get_kde_data, plot_subgroups,
         and get_statistics if the errors list attribute is empty.
@@ -96,7 +94,7 @@ class superplot:
         """
         # if no errors exist, create the superplot. Otherwise, report errors
         if len(self.errors) == 0:
-            self.get_kde_data(bw)
+            self.get_kde_data(self.bw)
             self.plot_subgroups(self.centre_val, self.middle_vals, self.error_bars,
                                 self.ylimits, self.total_width, self.linewidth,
                                 self.statistics)
