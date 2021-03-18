@@ -10,14 +10,14 @@ from setuptools import setup, find_packages
 
 setup(
       name = "superviolin",
-      version = 0.4,
+      version = 0.6,
       py_modules = ['plot_cli', 'plot'],
       url = "",
       description = "Python-based app to make superplots",
       author = "Martin Kenny",
-      author_email = "mkenny5@tcd.ie",
+      author_email = "sideproject1892@gmail.com",
       maintainer = "Martin Kenny",
-      maintainer_email = "mkenny5@tcd.ie",
+      maintainer_email = "sideproject1892@gmail.com",
       packages = find_packages(),
       entry_points = {
                       'console_scripts': ['superviolin=superviolin.plot_cli:cli']
