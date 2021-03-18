@@ -25,7 +25,7 @@ class superplot:
                  replicate='replicate', order="None", centre_val="mean", middle_vals="mean",
                  error_bars="SD", statistics='no', ylimits='None', total_width=0.8,
                  linewidth=1, dataframe=False, dpi=300, sep_linewidth=1, xlabel='',
-                 ylabel='', cmap='Set2', bw=None):
+                 ylabel='', cmap='Set2', bw='None'):
         self.errors = []
         self.df = dataframe
         self.x = condition if condition != 'REPLACE_ME' else 'condition'
@@ -41,8 +41,10 @@ class superplot:
         self.ylimits = ylimits
         self.total_width = total_width
         self.error_bars = error_bars
-        if bw != None:
+        if bw != 'None':
             self.bw = bw
+        else:
+            self.bw = None
         params['savefig.dpi'] = dpi
         if self.xlabel == 'REPLACE_ME':
             self.xlabel = ''
@@ -258,7 +260,7 @@ class superplot:
             norm_wy = np.array([a if len(a) > 0 else np.zeros(length) for a in norm_wy])
             norm_wy = np.cumsum(norm_wy, axis = 0)
             try:
-                norm_wy = norm_wy / np.max(norm_wy) # [0,1]
+                norm_wy = norm_wy / np.nanmax(norm_wy) # [0,1]
             except ValueError:
                 print('Failed to normalize y values')
             # update the dictionary with the normalized data and corresponding x points

@@ -91,7 +91,6 @@ def make_superplot():
     if not d:
         click.echo("args.txt not found in current folder")
     else:
-        print(type(d['bw']))
         violin = superplot(**d)
         violin.generate_plot()
         plt.show()
