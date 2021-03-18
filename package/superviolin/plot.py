@@ -266,8 +266,9 @@ class superplot:
             # update the dictionary with the normalized data and corresponding x points
             self.subgroup_dict[group]['norm_wy'] = norm_wy
             self.subgroup_dict[group]['px'] = px
-            
-    def _interpolate_nan(self, arr):
+    
+    @staticmethod
+    def _interpolate_nan(arr):
         """
         Interpolate NaN values in numpy array of x co-ordinates of each fitted
         kernel density estimator to prevent gaps in the stripes of each Violin
@@ -462,7 +463,8 @@ class superplot:
             lims = (float(i) for i in ylimits.split(', '))
             plt.ylim(lims)
         
-    def _find_nearest(self, array, value):
+    @staticmethod
+    def _find_nearest(array, value):
         """
         Helper function to find the value of an array nearest to the input
         value argument
