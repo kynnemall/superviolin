@@ -16,6 +16,21 @@ from appdirs import AppDirs
 from superviolin.plot import superplot
 
 def process_txt(txt):
+    """
+    Process args.txt files to get pairs of arguments and values to be used
+    for generating Violin SuperPlots
+
+    Parameters
+    ----------
+    txt : list of strings
+        Data from a text file that was read in line-by-line
+
+    Returns
+    -------
+    arg_dict : dictionary
+        Argument and argument value pairs
+
+    """
     arg_dict = {}
     lines = [i.rstrip() for i in txt if not i.startswith("#")]
     lines = [i for i in lines if len(i) > 0]
@@ -30,7 +45,27 @@ def process_txt(txt):
                 arg_dict[k] = v
     return arg_dict
 
-def get_args(preferences=False, demonstration=False):
+def get_args(demonstration=False, preferences=False):
+    """
+    Get arguments from txt files depending on whether the data is
+    for a demo of the package or creating a Violin SuperPlot from user
+    data.
+
+    Parameters
+    ----------
+    preferences : TYPE, optional
+        DESCRIPTION. The default is False.
+    demonstration : Boolean, optional
+        If True, get arguments from demo_args.txt and generate a Violin
+        SuperPlot based on the demo data included with this package.
+        The default is False.
+
+    Returns
+    -------
+    dictionary
+        Argument and argument value pairs for instantiating a superplot class
+
+    """
     if demonstration:
         txt_data = pkgutil.get_data(__name__, "templates/demo_args.txt").decode()
         lines = txt_data.split('\n')
@@ -52,9 +87,19 @@ def get_args(preferences=False, demonstration=False):
             return arg_dict
     
 def make_user_data_dir():
+    """
+    Creates a user directory to store args.txt from the package
+
+    Returns
+    -------
+    user_data_args : string
+        The path to the folder which is used to store the default args.txt
+        file for ease-of-access.
+
+    """
     _name = "superviolin"
     _author = "Martin Kenny"
-    _version = "0.4"
+    _version = "0.8"
     dirs = AppDirs(_name, _author, _version)
     user_data_args = os.path.join(dirs.user_data_dir, "args.txt")
     if not os.path.exists(dirs.user_data_dir):
@@ -85,7 +130,7 @@ def init():
     click.echo('Created args.txt')
     click.echo('Modify args.txt with your preferences, then run "superviolin plot"')
 
-@cli.command('plot', short_help="Generate superplot")
+@cli.command('plot', short_help="Generate Violin SuperPlot")
 def make_superplot():
     d = get_args()
     if not d:
@@ -95,7 +140,7 @@ def make_superplot():
         violin.generate_plot()
         plt.show()
 
-@cli.command('demo', short_help="Make demo superplot")
+@cli.command('demo', short_help="Make demo Violin SuperPlot")
 def demo():
     d = get_args(demonstration=True)
     bytedata = pkgutil.get_data(__name__, "templates/demo_data.csv")
