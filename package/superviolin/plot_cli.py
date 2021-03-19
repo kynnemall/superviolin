@@ -13,7 +13,7 @@ import click
 import pandas as pd
 import matplotlib.pyplot as plt
 from appdirs import AppDirs
-from superviolin.plot import superplot
+from superviolin.plot import Superplot
 
 def process_txt(txt):
     """
@@ -136,7 +136,7 @@ def make_superplot():
     if not d:
         click.echo("args.txt not found in current folder")
     else:
-        violin = superplot(**d)
+        violin = Superplot(**d)
         violin.generate_plot()
         plt.show()
 
@@ -145,6 +145,6 @@ def demo():
     d = get_args(demonstration=True)
     bytedata = pkgutil.get_data(__name__, "templates/demo_data.csv")
     df = pd.read_csv(io.BytesIO(bytedata))
-    violin = superplot(**d, dataframe=df)
+    violin = Superplot(**d, dataframe=df)
     violin.generate_plot()
     plt.show()

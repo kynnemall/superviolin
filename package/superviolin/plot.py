@@ -20,7 +20,7 @@ params['axes.spines.right'] = False
 params['axes.spines.top'] = False
 params['figure.dpi'] = 300
 
-class superplot:
+class Superplot:
     def __init__(self, filename, data_format, condition='condition', value='value',
                  replicate='replicate', order="None", centre_val="mean", middle_vals="mean",
                  error_bars="SD", statistics='no', ylimits='None', total_width=0.8,

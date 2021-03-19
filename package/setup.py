@@ -5,15 +5,21 @@ Created on Sat Jan  9 18:27:08 2021
 
 @author: martin
 """
-
+from os import path
 from setuptools import setup, find_packages
+
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(
       name = "superviolin",
-      version = 0.6,
+      version = 0.9,
       py_modules = ['plot_cli', 'plot'],
       url = "",
-      description = "Python-based app to make superplots",
+      description = "Python CLI to make Violin SuperPlots",
+      long_description = long_description,
+      long_description_content_type = 'text/markdown',
       author = "Martin Kenny",
       author_email = "sideproject1892@gmail.com",
       maintainer = "Martin Kenny",
