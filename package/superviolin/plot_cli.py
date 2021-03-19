@@ -99,7 +99,7 @@ def make_user_data_dir():
     """
     _name = "superviolin"
     _author = "Martin Kenny"
-    _version = "0.8"
+    _version = "0.9"
     dirs = AppDirs(_name, _author, _version)
     user_data_args = os.path.join(dirs.user_data_dir, "args.txt")
     if not os.path.exists(dirs.user_data_dir):
