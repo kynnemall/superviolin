@@ -111,10 +111,31 @@ def make_user_data_dir():
 
 @click.group()
 def cli():
+    """
+    Function to group CLI functions so that when "superviolin" is called 
+    in the terminal, it allows the user to access other functions in this
+    module
+
+    Returns
+    -------
+    None.
+
+    """
+    
     pass
 
 @cli.command('init', short_help="Create args.txt in current directory")
 def init():
+    """
+    Creates args.txt file in the current directory
+
+    Returns
+    -------
+    None.
+
+    """
+    
+    
     user_data_args = make_user_data_dir()
     with open(user_data_args, "r") as default:
         txt_data = default.readlines()
@@ -132,6 +153,16 @@ def init():
 
 @cli.command('plot', short_help="Generate Violin SuperPlot")
 def make_superplot():
+    """
+    Generates a Violin SuperPlot based on the args.txt file in the current
+    directory
+
+    Returns
+    -------
+    None.
+
+    """
+    
     d = get_args()
     if not d:
         click.echo("args.txt not found in current folder")
@@ -142,6 +173,16 @@ def make_superplot():
 
 @cli.command('demo', short_help="Make demo Violin SuperPlot")
 def demo():
+    """
+    Generates a Violin SuperPlot using the demo data file included in 
+    the package
+
+    Returns
+    -------
+    None.
+
+    """
+    
     d = get_args(demonstration=True)
     bytedata = pkgutil.get_data(__name__, "templates/demo_data.csv")
     df = pd.read_csv(io.BytesIO(bytedata))
