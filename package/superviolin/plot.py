@@ -56,15 +56,19 @@ class Superplot:
         
         # ensure dataframe is loaded
         if self._check_df(filename, data_format):
+            
             # ensure columns are all present in the dataframe
             if self._cols_in_df():
+                
                 # force Condition and Replicate to string types
                 self.df[self.x] = self.df[self.x].astype(str)
                 self.df[self.rep] = self.df[self.rep].astype(str)
+                
                 # organize subgroups
                 self.subgroups = tuple(sorted(self.df[self.x].unique().tolist()))
                 if order != "None":
                     self.subgroups = order.split(', ')
+                
                 # dictionary of arrays for subgroup data
                 # loop through the keys and add an empty list when the replicate numbers don't match
                 self.subgroup_dict = dict(
@@ -72,6 +76,7 @@ class Superplot:
                     )
     
                 self.unique_reps = tuple(self.df[self.rep].unique())
+                
                 # make sure there's enough colours for each subgroup when instantiating
                 if ', ' in cmap:
                     self.colours = tuple(cmap.split(', '))
@@ -223,19 +228,24 @@ class Superplot:
                 max_cuts.append(sub.max())
             min_cuts = sorted(min_cuts)
             max_cuts = sorted(max_cuts)
+            
             # make linespace of points from highest_min_cut to lowest_max_cut
             points1 = list(np.linspace(np.nanmin(min_cuts), np.nanmax(max_cuts), num = 128))
             points = sorted(list(set(min_cuts + points1 + max_cuts))) 
+            
             for rep in self.unique_reps:
+                
                 # first point to catch an empty list caused by uneven rep numbers
                 try:
                     sub = self.df[(self.df[self.rep] == rep) & (self.df[self.x] == group)][self.y]
                     arr = np.array(sub)
+                    
                     # remove nan or inf values which could cause a kde ValueError
                     arr = arr[~(np.isnan(arr))]
                     kde = gaussian_kde(arr, bw_method=bw)
                     kde_points = kde.evaluate(points)
                     kde_points = kde_points - np.nanmin(kde_points)
+                    
                     # use min and max to make the kde_points outside that dataset = 0
                     idx_min = min_cuts.index(arr.min())
                     idx_max = max_cuts.index(arr.max())
@@ -245,6 +255,7 @@ class Superplot:
                     for idx in range(idx_max - len(max_cuts), 0):
                         if idx_max - len(max_cuts) != -1:
                             kde_points[idx+1] = 0
+                    
                     # remove nan from arrays prior to combining into dictionary
                     kde_wo_nan = self._interpolate_nan(kde_points)
                     points_wo_nan = self._interpolate_nan(points)
@@ -254,8 +265,10 @@ class Superplot:
                     norm_wy.append([])
                     px.append(self._interpolate_nan(points))
             px = np.array(px)
+            
             # catch the error when there is an empty list added to the dictionary
             length = max([len(e) for e in norm_wy])
+            
             # rescale norm_wy for display purposes
             norm_wy = np.array([a if len(a) > 0 else np.zeros(length) for a in norm_wy])
             norm_wy = np.cumsum(norm_wy, axis = 0)
@@ -263,6 +276,7 @@ class Superplot:
                 norm_wy = norm_wy / np.nanmax(norm_wy) # [0,1]
             except ValueError:
                 print('Failed to normalize y values')
+            
             # update the dictionary with the normalized data and corresponding x points
             self.subgroup_dict[group]['norm_wy'] = norm_wy
             self.subgroup_dict[group]['px'] = px
@@ -318,6 +332,7 @@ class Superplot:
         None.
 
         """
+        
         # select scatter size based on number of replicates
         scatter_sizes = [10, 8, 6, 4]
         if len(self.unique_reps) < 3:
@@ -331,6 +346,7 @@ class Superplot:
         norm_wy = self.subgroup_dict[group]['norm_wy']
         px = self.subgroup_dict[group]['px']
         right_sides = np.array([norm_wy[-1]*-1 + i*2 for i in norm_wy])
+        
         # create array of 3 lines which denote the 3 replicates on the plot
         new_wy = []
         for i in range(len(px)):
@@ -340,6 +356,7 @@ class Superplot:
                 newline = np.append(right_sides[i-1], np.flipud(right_sides[i]))
             new_wy.append(newline)
         new_wy = np.array(new_wy)
+        
         # use last array to plot the outline
         outline_y = np.append(px[-1], np.flipud(px[-1]))
         outline_x = np.append(norm_wy[-1], np.flipud(norm_wy[-1]) * -1) * total_width + axis_point
@@ -352,19 +369,23 @@ class Superplot:
             outline_x = np.insert(outline_x, outline_x.size, xval)
             outline_y = np.insert(outline_y, 0, yval)
             outline_y = np.insert(outline_y, outline_y.size, yval)
+        
         for i,a in enumerate(self.unique_reps):
             reshaped_x = np.append(px[i-1], np.flipud(px[i-1]))
             mid_val = mid_df[mid_df[self.rep] == a][self.y].values
             reshaped_y = new_wy[i] * total_width  + axis_point
+            
             # plot separating lines and stripes
             plt.plot(reshaped_y, reshaped_x, c='k', linewidth=self.sep_linewidth)
             plt.fill(reshaped_y, reshaped_x, color=self.colours[i],
                      label=a, linewidth=self.sep_linewidth)
+            
             # get the mid_val each replicate and find it in reshaped_x
             # then get corresponding point in reshaped_x to plot the points
             if mid_val.size > 0: # account for empty mid_val
                 arr = reshaped_x[np.logical_not(np.isnan(reshaped_x))]
                 nearest = self._find_nearest(arr, mid_val[0])
+                
                 # find the indices of nearest in new_wy
                 # there will be two because new_wy is a loop
                 idx = np.where(reshaped_x == nearest)
@@ -410,19 +431,24 @@ class Superplot:
         plt.figure(figsize=(width, height))
         ticks = []
         lbls = []
+        
         # width of the bars
         median_width = 0.4
         for i,a in enumerate(self.subgroups):
             ticks.append(i*2)
             lbls.append(a)            
+            
             # calculate the mean/median value for all replicates of the variable
             sub = self.df[self.df[self.x] == a]
+            
             # robust mean calculates mean using data
             # between the 2.5 and 97.5 percentiles
             if middle_vals == 'robust':
+                
                 # loop through replicates in sub
                 subs = []
                 for rep in sub[self.rep].unique():
+                    
                     # drop rows containing NaN values as they mess up the subsetting
                     s = sub[sub[self.rep] == rep].dropna()
                     lower = np.percentile(s[self.y], 2.5)
@@ -431,15 +457,18 @@ class Superplot:
                     subs.append(s)
                 sub = pd.concat(subs)
                 middle_vals = 'mean'
+            
             # calculate mean from remaining data
             means = sub.groupby(self.rep, as_index=False).agg({self.y : middle_vals})
             self._single_subgroup_plot(a, i*2, mid_df=means, total_width=total_width,
                                        linewidth=linewidth)
+            
             # get mean or median line of the skeleton plot
             if centre_val == 'mean':
                 mid_val = means[self.y].mean()
             else:
                 mid_val = means[self.y].median()
+            
             # get error bars for the skeleton plot
             if error_bars == "SD":
                 upper = mid_val + means[self.y].std()
@@ -447,12 +476,14 @@ class Superplot:
             else:
                 lower,upper = norm.interval(0.95, loc=means[self.y].mean(),
                                       scale=means[self.y].std())
+            
             # plot horizontal lines across the column, centered on the tick
             plt.plot([i*2 - median_width / 1.5, i*2 + median_width / 1.5],
                          [mid_val, mid_val], lw=linewidth, color='k')
             for b in [upper, lower]:
                 plt.plot([i*2 - median_width / 4.5, i*2 + median_width / 4.5],
                          [b, b], lw=linewidth, color='k')
+            
             # plot vertical lines connecting the limits
             plt.plot([i*2, i*2], [lower, upper], lw=linewidth, color='k')  
         plt.xticks(ticks, lbls)
@@ -515,9 +546,11 @@ class Superplot:
         normal = self._normality(means)
         data = [list(means[means[self.x] == i][self.y]) for i in means[self.x].unique()]
         if len(self.subgroups) > 2:
+            
             # compare more than 2 groups
             if normal:
                 stat, p = f_oneway(*data)
+                
                 # use tukey to compare all groups with Bonferroni correction
                 posthoc = sp.posthoc_tukey(means, self.y, self.x)
                 print(f"One-way ANOVA P-value: {p:.3f}")
@@ -527,6 +560,7 @@ class Superplot:
                 posthoc = sp.posthoc_mannwhitney(means, self.y, self.x, p_adjust='bonferroni')
                 print(f"Kruskal-Wallis P-value: {p:.3f}")
                 print('Mann-Whitney posthoc tests conducted with Bonferroni correction')
+            
             # save statistics to file
             posthoc.to_csv('posthoc_statistics.txt', sep='\t')
             print("Posthoc statistics saved to txt file")
@@ -551,6 +585,7 @@ class Superplot:
             low, high = ax.get_ylim()
             span = high - low
             increment = span * 0.03 # add high to get the new y value
+            
             if len(self.subgroups) == 2:
                 x1, x2 = 0, 2
                 y = increment + high
@@ -564,14 +599,17 @@ class Superplot:
                 pairs = ((0, 1), (1, 2), (0, 2))
                 y = increment + high # increment = 3% of the range of the y-axis
                 text_loc = ['center', 'center', 'center']
+                
                 for i,pair in enumerate(pairs):
                     # get posthoc statistic for each comparison
                     condition1, condition2 = [labels[i] for i in pair]
                     pval = posthoc.loc[condition1, condition2]
                     x1, x2 = [i * 2 for i in pair]
+                    
                     # calculate values for lines and locating p-values on plot
                     h = y * 1.02
                     y += increment * 5
+                    
                     # plot the posthoc p-values and lines
                     plt.plot([x1, x1, x2, x2], [h, y, y, h], lw=1, c='Black')
                     plt.text((x1+x2)/2, y, f"P = {pval:.3f}", ha=text_loc[i],
