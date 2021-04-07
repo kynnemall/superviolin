@@ -11,8 +11,8 @@ import pandas as pd
 import scikit_posthocs as sp
 import matplotlib.pyplot as plt
 from matplotlib import rcParams as params
-from scipy.stats import gaussian_kde, norm, kruskal, f_oneway
-from scipy.stats import shapiro, mannwhitneyu, ttest_ind
+from scipy.stats import gaussian_kde, norm, f_oneway
+from scipy.stats import ttest_ind, ttest_rel
 params["xtick.labelsize"] = 8
 params["ytick.labelsize"] = 8
 params["axes.labelsize"] = 9
@@ -523,7 +523,8 @@ class Superplot:
         idx = (np.abs(array - value)).argmin()
         return array[idx]
     
-    def get_statistics(self, centre_val="mean", on_plot="yes", ylimits="None"):
+    def get_statistics(self, centre_val="mean", paired="no",
+                       on_plot="yes", ylimits="None"):
         """
         Determine appropriate statistics for the dataset, output statistics in
         txt file if there are 3 or more groups, and overlay on plot (optional).
@@ -533,6 +534,9 @@ class Superplot:
         centre_val : string, optional
             Central measure used for the skeleton plot. Either mean or median.
             The default is "mean".
+        paired : string, optional
+            Either "yes" or "no" if the data are paired.
+            The default is "no".
         on_plot : string, optional
             Either "yes" or "no" to put overlay the statistics on the plot.
             The default is "yes".
@@ -549,23 +553,15 @@ class Superplot:
             means = self.df.groupby([self.rep, self.x], as_index=False).agg({self.y : "mean"})
         else:
             means = self.df.groupby([self.rep, self.x], as_index=False).agg({self.y : centre_val})
-        normal = self._normality(means)
         data = [list(means[means[self.x] == i][self.y]) for i in means[self.x].unique()]
         if len(self.subgroups) > 2:
+            # compute one-way ANOVA test results
+            stat, p = f_oneway(*data)
             
-            # compare more than 2 groups
-            if normal:
-                stat, p = f_oneway(*data)
-                
-                # use tukey to compare all groups with Bonferroni correction
-                posthoc = sp.posthoc_tukey(means, self.y, self.x)
-                print(f"One-way ANOVA P-value: {p:.3f}")
-                print("Tukey posthoc tests conducted")
-            else:
-                stat, p = kruskal(*data)
-                posthoc = sp.posthoc_mannwhitney(means, self.y, self.x, p_adjust="bonferroni")
-                print(f"Kruskal-Wallis P-value: {p:.3f}")
-                print("Mann-Whitney posthoc tests conducted with Bonferroni correction")
+            # use tukey to compare all groups with Bonferroni correction
+            posthoc = sp.posthoc_tukey(means, self.y, self.x)
+            print(f"One-way ANOVA P-value: {p:.3f}")
+            print("Tukey posthoc tests conducted")
             
             # round p values to 3 decimal places in posthoc tests
             posthoc = posthoc.round(3)
@@ -573,28 +569,30 @@ class Superplot:
             posthoc.to_csv("posthoc_statistics.txt", sep="\t")
             print("Posthoc statistics saved to txt file")
         else:
-            # compare only 2 groups
-            if normal:
+            if paired == "no":
+                # independent t-test
                 stat, p = ttest_ind(data[0], data[1])
                 if p < 0.0001:
                     print(f"Independent t-test P-value: {p:.2e}")
                 else:
                     print(f"Independent t-test P-value: {p:.3f}")
             else:
-                stat, p = mannwhitneyu(data[0], data[1])
+                # paired t-test
+                stat, p = ttest_rel(data[0], data[1])
                 if p < 0.0001:
-                    print(f"Mann-Whitney P-value: {p:.2e}")
+                    print(f"Paired t-test P-value: {p:.2e}")
                 else:
-                    print(f"Mann-Whitney P-value: {p:.3f}")
+                    print(f"Paired t-test P-value: {p:.3f}")
                     
         # plot statistics if only 2 or 3 groups
-        if on_plot == "yes":
+        num_groups = len(self.subgroups)
+        if on_plot == "yes" and num_groups in [2, 3]:
             ax = plt.gca()
             low, high = ax.get_ylim()
             span = high - low
             increment = span * 0.03 # add high to get the new y value
             
-            if len(self.subgroups) == 2:
+            if num_groups == 2:
                 x1, x2 = 0, 2
                 y = increment + high
                 h = y + increment
@@ -602,7 +600,7 @@ class Superplot:
                 plt.text((x1+x2)*.5, h, f"P = {p:.3f}", ha="center", va="bottom",
                          color="k", fontsize=8)
                 plt.ylim((low, high+increment*10))
-            elif len(self.subgroups) == 3:
+            elif num_groups == 3:
                 labels = [i._text for i in ax.get_xticklabels()]
                 pairs = ((0, 1), (1, 2), (0, 2))
                 y = increment + high # increment = 3% of the range of the y-axis
@@ -627,33 +625,4 @@ class Superplot:
                 lims = (float(i) for i in ylimits.split(", "))
                 plt.ylim(lims)
             plt.tight_layout()
-    
-    def _normality(self, data):
-        """
-        Rough estimation of normality in the dataset
-
-        Parameters
-        ----------
-        data : Pandas DataFrame
-            Contains means for each replicate
-
-        Returns
-        -------
-        bool
-            True, if most of the data is normally-distributed, else False.
-
-        """
-        lst = []
-        for group in self.subgroups:
-            group_var = data[data[self.x] == group][self.y]
-            try:
-                _, p = shapiro(group_var)
-            except:
-                p = 1
-            lst.append(p)
-        normal = [1 if i > 0.05 else 0 for i in lst]
-        if np.mean(normal) > 0.65:
-            return True
-        else:
-            return False
         

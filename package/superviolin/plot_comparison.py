@@ -12,8 +12,8 @@ import scikit_posthocs as sp
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import rcParams as params
-from scipy.stats import gaussian_kde, norm, kruskal, f_oneway
-from scipy.stats import shapiro, mannwhitneyu, ttest_ind
+from scipy.stats import gaussian_kde, norm, f_oneway
+from scipy.stats import ttest_ind, ttest_rel
 params["xtick.labelsize"] = 8
 params["ytick.labelsize"] = 8
 params["axes.labelsize"] = 9
@@ -22,11 +22,13 @@ params["axes.spines.top"] = False
 params["figure.dpi"] = 300
 
 class Superplot:
-    def __init__(self, filename, data_format, condition="condition", value="value",
-                 replicate="replicate", order="None", centre_val="mean", middle_vals="mean",
-                 error_bars="SEM", stats_on_plot="no", ylimits="None", total_width=0.8,
-                 linewidth=1, dataframe=False, dpi=300, sep_linewidth=1, xlabel="",
-                 ylabel="", cmap="Set2", bw="None"):
+    def __init__(self, filename, data_format, condition="condition", 
+                 value="value", replicate="replicate", order="None",
+                 centre_val="mean", middle_vals="mean", error_bars="SEM",
+                 paired_data="no", stats_on_plot="no", ylimits="None",
+                 total_width=0.8, linewidth=1, dataframe=False, dpi=300,
+                 sep_linewidth=1, xlabel="", ylabel="", cmap="Set2",
+                 bw="None"):
         self.errors = []
         self.df = dataframe
         self.x = condition if condition != "REPLACE_ME" else "condition"
@@ -528,7 +530,7 @@ class Superplot:
         idx = (np.abs(array - value)).argmin()
         return array[idx]
     
-    def get_statistics(self, centre_val="mean", on_plot="yes", ylimits="None"):
+    def get_statistics(self, centre_val="mean", paired="no", on_plot="yes", ylimits="None"):
         """
         Determine appropriate statistics for the dataset, output statistics in
         txt file if there are 3 or more groups, and overlay on plot (optional).
@@ -554,23 +556,15 @@ class Superplot:
             means = self.df.groupby([self.rep, self.x], as_index=False).agg({self.y : "mean"})
         else:
             means = self.df.groupby([self.rep, self.x], as_index=False).agg({self.y : centre_val})
-        normal = self._normality(means)
         data = [list(means[means[self.x] == i][self.y]) for i in means[self.x].unique()]
         if len(self.subgroups) > 2:
+            # compute one-way ANOVA test results
+            stat, p = f_oneway(*data)
             
-            # compare more than 2 groups
-            if normal:
-                stat, p = f_oneway(*data)
-                
-                # use tukey to compare all groups with Bonferroni correction
-                posthoc = sp.posthoc_tukey(means, self.y, self.x)
-                print(f"One-way ANOVA P-value: {p:.3f}")
-                print("Tukey posthoc tests conducted")
-            else:
-                stat, p = kruskal(*data)
-                posthoc = sp.posthoc_mannwhitney(means, self.y, self.x, p_adjust="bonferroni")
-                print(f"Kruskal-Wallis P-value: {p:.3f}")
-                print("Mann-Whitney posthoc tests conducted with Bonferroni correction")
+            # use tukey to compare all groups with Bonferroni correction
+            posthoc = sp.posthoc_tukey(means, self.y, self.x)
+            print(f"One-way ANOVA P-value: {p:.3f}")
+            print("Tukey posthoc tests conducted")
             
             # round p values to 3 decimal places in posthoc tests
             posthoc = posthoc.round(3)
@@ -578,28 +572,22 @@ class Superplot:
             posthoc.to_csv("posthoc_statistics.txt", sep="\t")
             print("Posthoc statistics saved to txt file")
         else:
-            # compare only 2 groups
-            if normal:
-                stat, p = ttest_ind(data[0], data[1])
-                if p < 0.0001:
-                    print(f"Independent t-test P-value: {p:.2e}")
-                else:
-                    print(f"Independent t-test P-value: {p:.3f}")
+            # independent t-test
+            stat, p = ttest_ind(data[0], data[1])
+            if p < 0.0001:
+                print(f"Independent t-test P-value: {p:.2e}")
             else:
-                stat, p = mannwhitneyu(data[0], data[1])
-                if p < 0.0001:
-                    print(f"Mann-Whitney P-value: {p:.2e}")
-                else:
-                    print(f"Mann-Whitney P-value: {p:.3f}")
+                print(f"Independent t-test P-value: {p:.3f}")
                     
         # plot statistics if only 2 or 3 groups
-        if on_plot == "yes":
+        num_groups = len(self.subgroups)
+        if on_plot == "yes" and num_groups in [2, 3]:
             ax = plt.gca()
             low, high = ax.get_ylim()
             span = high - low
             increment = span * 0.03 # add high to get the new y value
             
-            if len(self.subgroups) == 2:
+            if num_groups == 2:
                 x1, x2 = 0, 2
                 y = increment + high
                 h = y + increment
@@ -607,7 +595,7 @@ class Superplot:
                 plt.text((x1+x2)*.5, h, f"P = {p:.3f}", ha="center", va="bottom",
                          color="k", fontsize=8)
                 plt.ylim((low, high+increment*10))
-            elif len(self.subgroups) == 3:
+            elif num_groups == 3:
                 labels = [i._text for i in ax.get_xticklabels()]
                 pairs = ((0, 1), (1, 2), (0, 2))
                 y = increment + high # increment = 3% of the range of the y-axis
@@ -632,35 +620,6 @@ class Superplot:
                 lims = (float(i) for i in ylimits.split(", "))
                 plt.ylim(lims)
             plt.tight_layout()
-    
-    def _normality(self, data):
-        """
-        Rough estimation of normality in the dataset
-
-        Parameters
-        ----------
-        data : Pandas DataFrame
-            Contains means for each replicate
-
-        Returns
-        -------
-        bool
-            True, if most of the data is normally-distributed, else False.
-
-        """
-        lst = []
-        for group in self.subgroups:
-            group_var = data[data[self.x] == group][self.y]
-            try:
-                _, p = shapiro(group_var)
-            except:
-                p = 1
-            lst.append(p)
-        normal = [1 if i > 0.05 else 0 for i in lst]
-        if np.mean(normal) > 0.65:
-            return True
-        else:
-            return False
         
     def beeswarm_plot(self, total_width, linewidth):
         width = 1 + len(self.subgroups) / 2
@@ -697,31 +656,70 @@ class Superplot:
             plt.scatter(a, b, facecolors='none', edgecolors='Black',
                         zorder=10, marker='o', s=29)
 
-# testing code
-# make ideal superplot
-os.chdir('templates')
-test = Superplot(filename='demo_data.csv', data_format='tidy',
-                 condition='drug', value='variable',
-                 stats_on_plot='yes')
-test.generate_plot()
-plt.ylabel('Spreading area ($\mu$$m^2$)')
-plt.tight_layout()
-#plt.close()
-# make Lord et al. SuperPlot
-for x in range(6):
-    if x != 1:
-        test.x_vals[x] /= 2
-test.beeswarm_plot(0.8,1)
-test.get_statistics()
-ax = plt.gca()
-ax.legend_ = None
-plt.ylabel('Spreading area ($\mu$$m^2$)')
-# SuperPlot with 6 replicates
-os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
-df = pd.read_csv('20210126_6_replicates.csv')
-df = df[df['variable'] <= 55]
-test = Superplot(condition='drug', value='variable', filename='',
-                 replicate='rep', data_format='tidy', dataframe=df,
-                 stats_on_plot='yes')
-test.generate_plot()
-plt.ylabel('Spreading area ($\mu$$m^2$)')
+def generate_figures():
+    # testing code
+    # make ideal superplot
+    os.chdir('templates')
+    test = Superplot(filename='demo_data.csv', data_format='tidy',
+                     condition='drug', value='variable',
+                     stats_on_plot='yes')
+    test.generate_plot()
+    plt.ylabel('Spreading area ($\mu$$m^2$)')
+    plt.tight_layout()
+    #plt.close()
+    # make Lord et al. SuperPlot
+    for x in range(6):
+        if x != 1:
+            test.x_vals[x] /= 2
+    test.beeswarm_plot(0.8,1)
+    test.get_statistics()
+    ax = plt.gca()
+    ax.legend_ = None
+    plt.ylabel('Spreading area ($\mu$$m^2$)')
+    # SuperPlot with 6 replicates
+    os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
+    df = pd.read_csv('20210126_6_replicates.csv')
+    df = df[df['variable'] <= 55]
+    test = Superplot(condition='drug', value='variable', filename='',
+                     replicate='rep', data_format='tidy', dataframe=df,
+                     stats_on_plot='yes')
+    test.generate_plot()
+    plt.ylabel('Spreading area ($\mu$$m^2$)')
+    
+def generate_fakes():
+    tech_rep_n = [6, 36, 216, 1296]
+    # bio_rep_n = [3, 6, 12, 24]
+    
+    # create fake dataset
+    variable = []
+    replicate = []
+    condition = []
+    
+    num = 1
+    for bio_rep in range(1, 25):
+        # get mean from normal distribution with mean 10 and SD 2
+        # get SD from normal distribution with mean 5 and SD 2 or 3
+        
+        for tech_rep in tech_rep_n:
+            # use normal distribution with certain mean and SD
+            # vary mean and SD for the biological replicates
+            
+            # get mean from normal distribution with mean 10 and SD 2
+            # get SD from normal distribution with mean 5 and SD 2 or 3
+            
+            data = np.random.normal(0.0, 1.0, tech_rep)
+            variable.append(data)
+            replicate.extend([bio_rep] * tech_rep)
+            condition.extend([num] * tech_rep)
+            num += 1
+    
+    # flatten arrays in list to 
+    variable = np.concatenate(variable, axis=0)
+    
+    fake = pd.DataFrame({'variable' : variable, 'condition' : condition,
+                         'replicate' : replicate})
+    return fake
+
+def plot_fake():
+    pass
+    
