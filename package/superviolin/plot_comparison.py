@@ -88,7 +88,6 @@ class Superplot:
                     self.cm = plt.get_cmap(cmap)
                     if cmap in qualitative:
                         self.colours = [self.cm(i / 8) for i in range(len(self.unique_reps))]
-                        self.colours = self.colours[::-1]
                     else:
                         self.colours = [self.cm((i+2) / (len(self.unique_reps)+2)) for i in range(len(self.unique_reps))]
                 if len(self.colours) < len(self.unique_reps):
@@ -704,39 +703,32 @@ def generate_figures():
     plt.tight_layout()
     
 def generate_fakes():
-    tech_rep_n = [6, 36, 216, 1296]
+    # tech_rep_n = [6, 36, 216, 1296]
     # bio_rep_n = [3, 6, 12, 24]
+    tech_rep = 1296
     
     # create fake dataset
     variable = []
     replicate = []
-    condition = []
     
-    num = 1
     for bio_rep in range(1, 25):
+        # generate new mean and SD for each biological replicate
         # get mean from normal distribution with mean 10 and SD 2
         # get SD from normal distribution with mean 5 and SD 2 or 3
+        mean = np.random.normal(10, 2)
+        sd = np.random.normal(5, 2)
         
-        for tech_rep in tech_rep_n:
-            # use normal distribution with certain mean and SD
-            # vary mean and SD for the biological replicates
+        # use normal distribution with certain mean and SD
+        # vary mean and SD for the biological replicates
             
-            # get mean from normal distribution with mean 10 and SD 2
-            # get SD from normal distribution with mean 5 and SD 2 or 3
-            
-            data = np.random.normal(0.0, 1.0, tech_rep)
-            variable.append(data)
-            replicate.extend([bio_rep] * tech_rep)
-            condition.extend([num] * tech_rep)
-            num += 1
+        data = np.random.normal(mean, sd, tech_rep)
+        variable.append(data)
+        replicate.extend([bio_rep] * tech_rep)
     
     # concatenate list of arrays to a single array
     variable = np.concatenate(variable, axis=0)
     
-    fake = pd.DataFrame({'variable' : variable, 'condition' : condition,
+    fake = pd.DataFrame({'variable' : variable, 'condition' : [1] * len(variable),
                          'replicate' : replicate})
     return fake
-
-def plot_fake():
-    pass
     
