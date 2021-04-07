@@ -104,7 +104,7 @@ class Superplot:
             self.get_kde_data(self.bw)
             self.plot_subgroups(self.centre_val, self.middle_vals, self.error_bars,
                                 self.ylimits, self.total_width, self.linewidth,
-                                self.statistics)
+                                self.stats_on_plot)
             self.get_statistics(self.centre_val, self.stats_on_plot, self.ylimits)
         else:
             if len(self.errors) == 1:
@@ -523,7 +523,7 @@ class Superplot:
         idx = (np.abs(array - value)).argmin()
         return array[idx]
     
-    def get_statistics(self, centre_val="mean", stats_on_plot="yes", ylimits="None"):
+    def get_statistics(self, centre_val="mean", on_plot="yes", ylimits="None"):
         """
         Determine appropriate statistics for the dataset, output statistics in
         txt file if there are 3 or more groups, and overlay on plot (optional).
