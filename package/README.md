@@ -6,7 +6,7 @@
 This command creates a Violin SuperPlot using dummy data that ships with the package. Run superviolin demo from your command prompt after installation to be sure the package is working.
 
 `init`
-The superviolin init command generates an ‘args.txt’ file in the current directory, which will be used to generate a Violin SuperPlot based on the Excel or csv file of your data located in the same folder using arguments specified in this text file.
+The superviolin init command generates an "args.txt" file in the current directory, which will be used to generate a Violin SuperPlot based on the Excel or csv file of your data located in the same folder using arguments specified in this text file.
 
 `plot`
 The superviolin plot command renders the Violin SuperPlot as a figure. This layout can be edited prior to saving.

@@ -34,8 +34,8 @@ centre_val: mean
 # use mean or median from each experimental replicate. Used to calculate the centre_val. Default: mean
 middle_vals: mean
 
-# standard deviation (SD, default) or 95% confidence interval (CI) if using median
-error_bars: SD
+# standard error of the mean (SEM, default), standard deviation (SD), or 95% confidence interval (CI) if using median
+error_bars: SEM
 
 # bandwidth of the fitted kernel density estimators. Determines smoothening of the
 # stripes in each violin. "None" is the default value, which means an "optimal" # factor will be calculated

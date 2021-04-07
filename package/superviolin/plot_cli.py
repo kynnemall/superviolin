@@ -35,11 +35,11 @@ def process_txt(txt):
     lines = [i.rstrip() for i in txt if not i.startswith("#")]
     lines = [i for i in lines if len(i) > 0]
     for l in lines:
-        k, v = l.replace('\n', '').split(": ")
+        k, v = l.replace("\n", "").split(": ")
         try:
             arg_dict[k] = float(v)
         except ValueError:
-            if k == 'None':
+            if k == "None":
                 arg_dict[k] = None
             else:
                 arg_dict[k] = v
@@ -68,7 +68,7 @@ def get_args(demonstration=False, preferences=False):
     """
     if demonstration:
         txt_data = pkgutil.get_data(__name__, "templates/demo_args.txt").decode()
-        lines = txt_data.split('\n')
+        lines = txt_data.split("\n")
         arg_dict = process_txt(lines)
         return arg_dict
     elif preferences:
@@ -124,7 +124,7 @@ def cli():
     
     pass
 
-@cli.command('init', short_help="Create args.txt in current directory")
+@cli.command("init", short_help="Create args.txt in current directory")
 def init():
     """
     Creates args.txt file in the current directory
@@ -141,17 +141,17 @@ def init():
         txt_data = default.readlines()
         txt_lines = []
         for l in txt_data:
-            if l != '\n':
+            if l != "\n":
                 txt_lines.append(l)
-            if not l.startswith('#'):
-                txt_lines.append('\n')
-        txt_data = ''.join(txt_lines)
+            if not l.startswith("#"):
+                txt_lines.append("\n")
+        txt_data = "".join(txt_lines)
     with open("args.txt", "w") as f:
         f.write(txt_data)
-    click.echo('Created args.txt')
-    click.echo('Modify args.txt with your preferences, then run "superviolin plot"')
+    click.echo("Created args.txt")
+    click.echo("Modify args.txt with your preferences, then run `superviolin plot`")
 
-@cli.command('plot', short_help="Generate Violin SuperPlot")
+@cli.command("plot", short_help="Generate Violin SuperPlot")
 def make_superplot():
     """
     Generates a Violin SuperPlot based on the args.txt file in the current
@@ -171,7 +171,7 @@ def make_superplot():
         violin.generate_plot()
         plt.show()
 
-@cli.command('demo', short_help="Make demo Violin SuperPlot")
+@cli.command("demo", short_help="Make demo Violin SuperPlot")
 def demo():
     """
     Generates a Violin SuperPlot using the demo data file included in 

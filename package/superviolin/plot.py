@@ -13,46 +13,46 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams as params
 from scipy.stats import gaussian_kde, norm, kruskal, f_oneway
 from scipy.stats import shapiro, mannwhitneyu, ttest_ind
-params['xtick.labelsize'] = 8
-params['ytick.labelsize'] = 8
-params['axes.labelsize'] = 9
-params['axes.spines.right'] = False
-params['axes.spines.top'] = False
-params['figure.dpi'] = 300
+params["xtick.labelsize"] = 8
+params["ytick.labelsize"] = 8
+params["axes.labelsize"] = 9
+params["axes.spines.right"] = False
+params["axes.spines.top"] = False
+params["figure.dpi"] = 300
 
 class Superplot:
-    def __init__(self, filename, data_format, condition='condition', value='value',
-                 replicate='replicate', order="None", centre_val="mean", middle_vals="mean",
-                 error_bars="SD", statistics='no', ylimits='None', total_width=0.8,
-                 linewidth=1, dataframe=False, dpi=300, sep_linewidth=1, xlabel='',
-                 ylabel='', cmap='Set2', bw='None'):
+    def __init__(self, filename, data_format, condition="condition", value="value",
+                 replicate="replicate", order="None", centre_val="mean", middle_vals="mean",
+                 error_bars="SEM", stats_on_plot="no", ylimits="None", total_width=0.8,
+                 linewidth=1, dataframe=False, dpi=300, sep_linewidth=1, xlabel="",
+                 ylabel="", cmap="Set2", bw="None"):
         self.errors = []
         self.df = dataframe
-        self.x = condition if condition != 'REPLACE_ME' else 'condition'
-        self.y = value if value != 'REPLACE_ME' else 'value'
-        self.rep = replicate if replicate != 'REPLACE_ME' else 'replicate'
+        self.x = condition if condition != "REPLACE_ME" else "condition"
+        self.y = value if value != "REPLACE_ME" else "value"
+        self.rep = replicate if replicate != "REPLACE_ME" else "replicate"
         self.linewidth = linewidth
         self.sep_linewidth = sep_linewidth
         self.xlabel = xlabel
         self.ylabel = ylabel
         self.middle_vals = middle_vals
         self.centre_val = centre_val
-        self.statistics = statistics
+        self.stats_on_plot = stats_on_plot
         self.ylimits = ylimits
         self.total_width = total_width
         self.error_bars = error_bars
-        if bw != 'None':
+        if bw != "None":
             self.bw = bw
         else:
             self.bw = None
-        params['savefig.dpi'] = dpi
-        if self.xlabel == 'REPLACE_ME':
-            self.xlabel = ''
-        if self.ylabel == 'REPLACE_ME':
-            self.ylabel = ''
+        params["savefig.dpi"] = dpi
+        if self.xlabel == "REPLACE_ME":
+            self.xlabel = ""
+        if self.ylabel == "REPLACE_ME":
+            self.ylabel = ""
             
-        qualitative = ['Pastel1', 'Pastel2', 'Paired', 'Accent', 'Dark2', 'Set1',
-                       'Set2', 'Set3', 'tab10', 'tab20', 'tab20b', 'tab20c']
+        qualitative = ["Pastel1", "Pastel2", "Paired", "Accent", "Dark2", "Set1",
+                       "Set2", "Set3", "tab10", "tab20", "tab20b", "tab20c"]
         
         # ensure dataframe is loaded
         if self._check_df(filename, data_format):
@@ -67,19 +67,19 @@ class Superplot:
                 # organize subgroups
                 self.subgroups = tuple(sorted(self.df[self.x].unique().tolist()))
                 if order != "None":
-                    self.subgroups = order.split(', ')
+                    self.subgroups = order.split(", ")
                 
                 # dictionary of arrays for subgroup data
-                # loop through the keys and add an empty list when the replicate numbers don't match
+                # loop through the keys and add an empty list when the replicate numbers don"t match
                 self.subgroup_dict = dict(
-                    zip(self.subgroups, [{'norm_wy' : [], 'px' : []} for i in self.subgroups])
+                    zip(self.subgroups, [{"norm_wy" : [], "px" : []} for i in self.subgroups])
                     )
     
                 self.unique_reps = tuple(self.df[self.rep].unique())
                 
-                # make sure there's enough colours for each subgroup when instantiating
-                if ', ' in cmap:
-                    self.colours = tuple(cmap.split(', '))
+                # make sure there"s enough colours for each subgroup when instantiating
+                if ", " in cmap:
+                    self.colours = tuple(cmap.split(", "))
                 else:
                     self.cm = plt.get_cmap(cmap)
                     if cmap in qualitative:
@@ -105,7 +105,7 @@ class Superplot:
             self.plot_subgroups(self.centre_val, self.middle_vals, self.error_bars,
                                 self.ylimits, self.total_width, self.linewidth,
                                 self.statistics)
-            self.get_statistics(self.centre_val, self.statistics, self.ylimits)
+            self.get_statistics(self.centre_val, self.stats_on_plot, self.ylimits)
         else:
             if len(self.errors) == 1:
                 print("Caught 1 error")
@@ -160,12 +160,12 @@ class Superplot:
             else False
 
         """
-        if 'bool' in str(type(self.df)):
-            if filename.endswith('csv') and filename in os.listdir():
+        if "bool" in str(type(self.df)):
+            if filename.endswith("csv") and filename in os.listdir():
                 self.df = pd.read_csv(filename)
                 return True
             elif ".xl" in filename and filename in os.listdir():
-                if data_format == 'tidy':
+                if data_format == "tidy":
                     self.df = pd.read_excel(filename)
                 else:
                     self._make_tidy(filename)
@@ -192,7 +192,7 @@ class Superplot:
             if len(missing_cols) == 1:
                 self.errors.append("Variable not found: " + missing_cols[0])
             else:
-                self.errors.append("Missing variables: " + ', '.join(missing_cols))
+                self.errors.append("Missing variables: " + ", ".join(missing_cols))
             return False
         else:
             return True
@@ -275,11 +275,11 @@ class Superplot:
             try:
                 norm_wy = norm_wy / np.nanmax(norm_wy) # [0,1]
             except ValueError:
-                print('Failed to normalize y values')
+                print("Failed to normalize y values")
             
             # update the dictionary with the normalized data and corresponding x points
-            self.subgroup_dict[group]['norm_wy'] = norm_wy
-            self.subgroup_dict[group]['px'] = px
+            self.subgroup_dict[group]["norm_wy"] = norm_wy
+            self.subgroup_dict[group]["px"] = px
     
     @staticmethod
     def _interpolate_nan(arr):
@@ -343,8 +343,8 @@ class Superplot:
             num = len(self.unique_reps) - 3
         scatter_size = scatter_sizes[num]
         
-        norm_wy = self.subgroup_dict[group]['norm_wy']
-        px = self.subgroup_dict[group]['px']
+        norm_wy = self.subgroup_dict[group]["norm_wy"]
+        px = self.subgroup_dict[group]["px"]
         right_sides = np.array([norm_wy[-1]*-1 + i*2 for i in norm_wy])
         
         # create array of 3 lines which denote the 3 replicates on the plot
@@ -376,7 +376,7 @@ class Superplot:
             reshaped_y = new_wy[i] * total_width  + axis_point
             
             # plot separating lines and stripes
-            plt.plot(reshaped_y, reshaped_x, c='k', linewidth=self.sep_linewidth)
+            plt.plot(reshaped_y, reshaped_x, c="k", linewidth=self.sep_linewidth)
             plt.fill(reshaped_y, reshaped_x, color=self.colours[i],
                      label=a, linewidth=self.sep_linewidth)
             
@@ -391,9 +391,10 @@ class Superplot:
                 idx = np.where(reshaped_x == nearest)
                 x_vals = reshaped_y[idx]
                 x_val = x_vals[0] + ((x_vals[1] - x_vals[0]) / 2)
-                plt.scatter(x_val, mid_val[0], facecolors=self.colours[i], edgecolors='Black',
-                            zorder=2, marker='o', s=scatter_size)
-        plt.plot(outline_x, outline_y, color='Black', linewidth=linewidth)
+                plt.scatter(x_val, mid_val[0], facecolors=self.colours[i],
+                            edgecolors="Black", linewidth=self.sep_linewidth,
+                            zorder=2, marker="o", s=scatter_size)
+        plt.plot(outline_x, outline_y, color="Black", linewidth=linewidth)
         
     def plot_subgroups(self, centre_val, middle_vals, error_bars, ylimits,
                        total_width, linewidth, statistics):
@@ -408,8 +409,9 @@ class Superplot:
             Central measure of each replicate. Either mean, median, or robust
             mean
         error_bars : string
-            Method for displaying error bars in the skeleton plot. Either SD 
-            for standard deviation or CI for 95% confidence intervals
+            Method for displaying error bars in the skeleton plot. Either SEM
+            for standard error of the mean, SD for standard deviation,
+            or CI for 95% confidence intervals
         ylimits : string
             User-specified ylimits in the form (lower, upper) where lower and 
             upper are float values
@@ -443,7 +445,7 @@ class Superplot:
             
             # robust mean calculates mean using data
             # between the 2.5 and 97.5 percentiles
-            if middle_vals == 'robust':
+            if middle_vals == "robust":
                 
                 # loop through replicates in sub
                 subs = []
@@ -456,7 +458,7 @@ class Superplot:
                     s = s.query(f"{lower} <= {self.y} <= {upper}")
                     subs.append(s)
                 sub = pd.concat(subs)
-                middle_vals = 'mean'
+                middle_vals = "mean"
             
             # calculate mean from remaining data
             means = sub.groupby(self.rep, as_index=False).agg({self.y : middle_vals})
@@ -464,34 +466,38 @@ class Superplot:
                                        linewidth=linewidth)
             
             # get mean or median line of the skeleton plot
-            if centre_val == 'mean':
+            if centre_val == "mean":
                 mid_val = means[self.y].mean()
             else:
                 mid_val = means[self.y].median()
             
             # get error bars for the skeleton plot
-            if error_bars == "SD":
+            if error_bars == "SEM":
+                sem = means[self.y].sem()
+                upper = mid_val + sem
+                lower = mid_val - sem
+            elif error_bars == "SD":
                 upper = mid_val + means[self.y].std()
                 lower = mid_val - means[self.y].std()
             else:
-                lower,upper = norm.interval(0.95, loc=means[self.y].mean(),
+                lower, upper = norm.interval(0.95, loc=means[self.y].mean(),
                                       scale=means[self.y].std())
             
             # plot horizontal lines across the column, centered on the tick
             plt.plot([i*2 - median_width / 1.5, i*2 + median_width / 1.5],
-                         [mid_val, mid_val], lw=linewidth, color='k')
+                         [mid_val, mid_val], lw=linewidth, color="k")
             for b in [upper, lower]:
                 plt.plot([i*2 - median_width / 4.5, i*2 + median_width / 4.5],
-                         [b, b], lw=linewidth, color='k')
+                         [b, b], lw=linewidth, color="k")
             
             # plot vertical lines connecting the limits
-            plt.plot([i*2, i*2], [lower, upper], lw=linewidth, color='k')  
+            plt.plot([i*2, i*2], [lower, upper], lw=linewidth, color="k")  
         plt.xticks(ticks, lbls)
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
         plt.tight_layout()
-        if ylimits != 'None' and statistics != 'yes':
-            lims = (float(i) for i in ylimits.split(', '))
+        if ylimits != "None" and statistics != "yes":
+            lims = (float(i) for i in ylimits.split(", "))
             plt.ylim(lims)
         
     @staticmethod
@@ -517,7 +523,7 @@ class Superplot:
         idx = (np.abs(array - value)).argmin()
         return array[idx]
     
-    def get_statistics(self, centre_val='mean', on_plot='yes', ylimits='None'):
+    def get_statistics(self, centre_val="mean", stats_on_plot="yes", ylimits="None"):
         """
         Determine appropriate statistics for the dataset, output statistics in
         txt file if there are 3 or more groups, and overlay on plot (optional).
@@ -526,21 +532,21 @@ class Superplot:
         ----------
         centre_val : string, optional
             Central measure used for the skeleton plot. Either mean or median.
-            The default is 'mean'.
+            The default is "mean".
         on_plot : string, optional
             Either "yes" or "no" to put overlay the statistics on the plot.
-            The default is 'yes'.
+            The default is "yes".
         ylimits : string, optional
             User-specified ylimits in the form (lower, upper) where lower and 
-            upper are float values. The default is 'None'.
+            upper are float values. The default is "None".
 
         Returns
         -------
         None.
 
         """
-        if centre_val == 'robust':
-            means = self.df.groupby([self.rep, self.x], as_index=False).agg({self.y : 'mean'})
+        if centre_val == "robust":
+            means = self.df.groupby([self.rep, self.x], as_index=False).agg({self.y : "mean"})
         else:
             means = self.df.groupby([self.rep, self.x], as_index=False).agg({self.y : centre_val})
         normal = self._normality(means)
@@ -554,15 +560,17 @@ class Superplot:
                 # use tukey to compare all groups with Bonferroni correction
                 posthoc = sp.posthoc_tukey(means, self.y, self.x)
                 print(f"One-way ANOVA P-value: {p:.3f}")
-                print('Tukey posthoc tests conducted')
+                print("Tukey posthoc tests conducted")
             else:
                 stat, p = kruskal(*data)
-                posthoc = sp.posthoc_mannwhitney(means, self.y, self.x, p_adjust='bonferroni')
+                posthoc = sp.posthoc_mannwhitney(means, self.y, self.x, p_adjust="bonferroni")
                 print(f"Kruskal-Wallis P-value: {p:.3f}")
-                print('Mann-Whitney posthoc tests conducted with Bonferroni correction')
+                print("Mann-Whitney posthoc tests conducted with Bonferroni correction")
             
+            # round p values to 3 decimal places in posthoc tests
+            posthoc = posthoc.round(3)
             # save statistics to file
-            posthoc.to_csv('posthoc_statistics.txt', sep='\t')
+            posthoc.to_csv("posthoc_statistics.txt", sep="\t")
             print("Posthoc statistics saved to txt file")
         else:
             # compare only 2 groups
@@ -580,7 +588,7 @@ class Superplot:
                     print(f"Mann-Whitney P-value: {p:.3f}")
                     
         # plot statistics if only 2 or 3 groups
-        if on_plot == 'yes':
+        if on_plot == "yes":
             ax = plt.gca()
             low, high = ax.get_ylim()
             span = high - low
@@ -590,15 +598,15 @@ class Superplot:
                 x1, x2 = 0, 2
                 y = increment + high
                 h = y + increment
-                plt.plot([x1, x1, x2, x2], [y, h, h, y], lw=1, c='k')
-                plt.text((x1+x2)*.5, h, f"P = {p:.3f}", ha='center', va='bottom',
-                         color='k', fontsize=8)
+                plt.plot([x1, x1, x2, x2], [y, h, h, y], lw=1, c="k")
+                plt.text((x1+x2)*.5, h, f"P = {p:.3f}", ha="center", va="bottom",
+                         color="k", fontsize=8)
                 plt.ylim((low, high+increment*10))
             elif len(self.subgroups) == 3:
                 labels = [i._text for i in ax.get_xticklabels()]
                 pairs = ((0, 1), (1, 2), (0, 2))
                 y = increment + high # increment = 3% of the range of the y-axis
-                text_loc = ['center', 'center', 'center']
+                text_loc = ["center", "center", "center"]
                 
                 for i,pair in enumerate(pairs):
                     # get posthoc statistic for each comparison
@@ -611,12 +619,12 @@ class Superplot:
                     y += increment * 5
                     
                     # plot the posthoc p-values and lines
-                    plt.plot([x1, x1, x2, x2], [h, y, y, h], lw=1, c='Black')
+                    plt.plot([x1, x1, x2, x2], [h, y, y, h], lw=1, c="Black")
                     plt.text((x1+x2)/2, y, f"P = {pval:.3f}", ha=text_loc[i],
-                             va='bottom', color='Black', fontsize=8)
+                             va="bottom", color="Black", fontsize=8)
                 plt.ylim((low, low + span * 1.5))
-            if ylimits != 'None':
-                lims = (float(i) for i in ylimits.split(', '))
+            if ylimits != "None":
+                lims = (float(i) for i in ylimits.split(", "))
                 plt.ylim(lims)
             plt.tight_layout()
     
