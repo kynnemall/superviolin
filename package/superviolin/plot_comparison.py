@@ -27,7 +27,7 @@ class Superplot:
                  centre_val="mean", middle_vals="mean", error_bars="SEM",
                  paired_data="no", stats_on_plot="no", ylimits="None",
                  total_width=0.8, linewidth=1, dataframe=False, dpi=300,
-                 sep_linewidth=1, xlabel="", ylabel="", cmap="Set2",
+                 sep_linewidth=0.5, xlabel="", ylabel="", cmap="Set2",
                  bw="None"):
         self.errors = []
         self.df = dataframe
@@ -40,6 +40,7 @@ class Superplot:
         self.ylabel = ylabel
         self.middle_vals = middle_vals
         self.centre_val = centre_val
+        self.paired = paired_data
         self.stats_on_plot = stats_on_plot
         self.ylimits = ylimits
         self.total_width = total_width
@@ -87,6 +88,7 @@ class Superplot:
                     self.cm = plt.get_cmap(cmap)
                     if cmap in qualitative:
                         self.colours = [self.cm(i / 8) for i in range(len(self.unique_reps))]
+                        self.colours = self.colours[::-1]
                     else:
                         self.colours = [self.cm((i+2) / (len(self.unique_reps)+2)) for i in range(len(self.unique_reps))]
                 if len(self.colours) < len(self.unique_reps):
@@ -105,10 +107,12 @@ class Superplot:
         # if no errors exist, create the superplot. Otherwise, report errors
         if len(self.errors) == 0:
             self.get_kde_data(self.bw)
-            self.plot_subgroups(self.centre_val, self.middle_vals, self.error_bars,
-                                self.ylimits, self.total_width, self.linewidth,
+            self.plot_subgroups(self.centre_val, self.middle_vals,
+                                self.error_bars, self.ylimits,
+                                self.total_width, self.linewidth,
                                 self.stats_on_plot)
-            self.get_statistics(self.centre_val, self.stats_on_plot, self.ylimits)
+            self.get_statistics(self.centre_val, self.paired,
+                                self.stats_on_plot, self.ylimits)
         else:
             if len(self.errors) == 1:
                 print("Caught 1 error")
@@ -530,7 +534,8 @@ class Superplot:
         idx = (np.abs(array - value)).argmin()
         return array[idx]
     
-    def get_statistics(self, centre_val="mean", paired="no", on_plot="yes", ylimits="None"):
+    def get_statistics(self, centre_val="mean", paired="no",
+                       on_plot="yes", ylimits="None"):
         """
         Determine appropriate statistics for the dataset, output statistics in
         txt file if there are 3 or more groups, and overlay on plot (optional).
@@ -540,6 +545,9 @@ class Superplot:
         centre_val : string, optional
             Central measure used for the skeleton plot. Either mean or median.
             The default is "mean".
+        paired : string, optional
+            Either "yes" or "no" if the data are paired.
+            The default is "no".
         on_plot : string, optional
             Either "yes" or "no" to put overlay the statistics on the plot.
             The default is "yes".
@@ -572,12 +580,20 @@ class Superplot:
             posthoc.to_csv("posthoc_statistics.txt", sep="\t")
             print("Posthoc statistics saved to txt file")
         else:
-            # independent t-test
-            stat, p = ttest_ind(data[0], data[1])
-            if p < 0.0001:
-                print(f"Independent t-test P-value: {p:.2e}")
+            if paired == "no":
+                # independent t-test
+                stat, p = ttest_ind(data[0], data[1])
+                if p < 0.0001:
+                    print(f"Independent t-test P-value: {p:.2e}")
+                else:
+                    print(f"Independent t-test P-value: {p:.3f}")
             else:
-                print(f"Independent t-test P-value: {p:.3f}")
+                # paired t-test
+                stat, p = ttest_rel(data[0], data[1])
+                if p < 0.0001:
+                    print(f"Paired t-test P-value: {p:.2e}")
+                else:
+                    print(f"Paired t-test P-value: {p:.3f}")
                     
         # plot statistics if only 2 or 3 groups
         num_groups = len(self.subgroups)
@@ -662,29 +678,30 @@ def generate_figures():
     os.chdir('templates')
     test = Superplot(filename='demo_data.csv', data_format='tidy',
                      condition='drug', value='variable',
-                     stats_on_plot='yes')
+                     stats_on_plot='yes', paired_data="yes")
     test.generate_plot()
     plt.ylabel('Spreading area ($\mu$$m^2$)')
     plt.tight_layout()
-    #plt.close()
+    # plt.close()
     # make Lord et al. SuperPlot
-    for x in range(6):
-        if x != 1:
-            test.x_vals[x] /= 2
-    test.beeswarm_plot(0.8,1)
-    test.get_statistics()
-    ax = plt.gca()
-    ax.legend_ = None
-    plt.ylabel('Spreading area ($\mu$$m^2$)')
+    # for x in range(6):
+    #     if x != 1:
+    #         test.x_vals[x] /= 2
+    # test.beeswarm_plot(0.8,1)
+    # test.get_statistics()
+    # ax = plt.gca()
+    # ax.legend_ = None
+    # plt.ylabel('Spreading area ($\mu$$m^2$)')
     # SuperPlot with 6 replicates
     os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter')
     df = pd.read_csv('20210126_6_replicates.csv')
     df = df[df['variable'] <= 55]
     test = Superplot(condition='drug', value='variable', filename='',
                      replicate='rep', data_format='tidy', dataframe=df,
-                     stats_on_plot='yes')
+                     stats_on_plot='yes', paired_data="yes")
     test.generate_plot()
     plt.ylabel('Spreading area ($\mu$$m^2$)')
+    plt.tight_layout()
     
 def generate_fakes():
     tech_rep_n = [6, 36, 216, 1296]
@@ -713,7 +730,7 @@ def generate_fakes():
             condition.extend([num] * tech_rep)
             num += 1
     
-    # flatten arrays in list to 
+    # concatenate list of arrays to a single array
     variable = np.concatenate(variable, axis=0)
     
     fake = pd.DataFrame({'variable' : variable, 'condition' : condition,

@@ -21,11 +21,13 @@ params["axes.spines.top"] = False
 params["figure.dpi"] = 300
 
 class Superplot:
-    def __init__(self, filename, data_format, condition="condition", value="value",
-                 replicate="replicate", order="None", centre_val="mean", middle_vals="mean",
-                 error_bars="SEM", stats_on_plot="no", ylimits="None", total_width=0.8,
-                 linewidth=1, dataframe=False, dpi=300, sep_linewidth=1, xlabel="",
-                 ylabel="", cmap="Set2", bw="None"):
+    def __init__(self, filename, data_format, condition="condition", 
+                 value="value", replicate="replicate", order="None",
+                 centre_val="mean", middle_vals="mean", error_bars="SEM",
+                 paired_data="no", stats_on_plot="no", ylimits="None",
+                 total_width=0.8, linewidth=1, dataframe=False, dpi=300,
+                 sep_linewidth=1, xlabel="", ylabel="", cmap="Set2",
+                 bw="None"):
         self.errors = []
         self.df = dataframe
         self.x = condition if condition != "REPLACE_ME" else "condition"
@@ -37,6 +39,7 @@ class Superplot:
         self.ylabel = ylabel
         self.middle_vals = middle_vals
         self.centre_val = centre_val
+        self.paired = paired_data
         self.stats_on_plot = stats_on_plot
         self.ylimits = ylimits
         self.total_width = total_width
@@ -51,8 +54,9 @@ class Superplot:
         if self.ylabel == "REPLACE_ME":
             self.ylabel = ""
             
-        qualitative = ["Pastel1", "Pastel2", "Paired", "Accent", "Dark2", "Set1",
-                       "Set2", "Set3", "tab10", "tab20", "tab20b", "tab20c"]
+        qualitative = ["Pastel1", "Pastel2", "Paired", "Accent", "Dark2",
+                       "Set1", "Set2", "Set3", "tab10", "tab20", "tab20b",
+                       "tab20c"]
         
         # ensure dataframe is loaded
         if self._check_df(filename, data_format):
@@ -70,14 +74,17 @@ class Superplot:
                     self.subgroups = order.split(", ")
                 
                 # dictionary of arrays for subgroup data
-                # loop through the keys and add an empty list when the replicate numbers don"t match
+                # loop through the keys and add an empty list
+                # when the replicate numbers don"t match
                 self.subgroup_dict = dict(
-                    zip(self.subgroups, [{"norm_wy" : [], "px" : []} for i in self.subgroups])
+                    zip(self.subgroups,
+                        [{"norm_wy" : [], "px" : []} for i in self.subgroups])
                     )
     
                 self.unique_reps = tuple(self.df[self.rep].unique())
                 
-                # make sure there"s enough colours for each subgroup when instantiating
+                # make sure there"s enough colours for 
+                # each subgroup when instantiating
                 if ", " in cmap:
                     self.colours = tuple(cmap.split(", "))
                 else:
@@ -85,7 +92,8 @@ class Superplot:
                     if cmap in qualitative:
                         self.colours = [self.cm(i / 8) for i in range(len(self.unique_reps))]
                     else:
-                        self.colours = [self.cm((i+2) / (len(self.unique_reps)+2)) for i in range(len(self.unique_reps))]
+                        divisor = len(self.unique_reps)+2
+                        self.colours = [self.cm((i+2) / divisor) for i in range(len(self.unique_reps))]
                 if len(self.colours) < len(self.unique_reps):
                     self.errors.append("Not enough colours for each replicate")
                     
@@ -102,10 +110,12 @@ class Superplot:
         # if no errors exist, create the superplot. Otherwise, report errors
         if len(self.errors) == 0:
             self.get_kde_data(self.bw)
-            self.plot_subgroups(self.centre_val, self.middle_vals, self.error_bars,
-                                self.ylimits, self.total_width, self.linewidth,
+            self.plot_subgroups(self.centre_val, self.middle_vals,
+                                self.error_bars, self.ylimits,
+                                self.total_width, self.linewidth,
                                 self.stats_on_plot)
-            self.get_statistics(self.centre_val, self.stats_on_plot, self.ylimits)
+            self.get_statistics(self.centre_val, self.paired,
+                                self.stats_on_plot, self.ylimits)
         else:
             if len(self.errors) == 1:
                 print("Caught 1 error")
@@ -187,12 +197,14 @@ class Superplot:
             True if all supplied column names are present in the df attribute
 
         """
-        missing_cols = [col for col in [self.x, self.y, self.rep] if col not in self.df.columns]
+        cols = [self.x, self.y, self.rep]
+        missing_cols = [col for col in cols if col not in self.df.columns]
         if len(missing_cols) != 0:
             if len(missing_cols) == 1:
                 self.errors.append("Variable not found: " + missing_cols[0])
             else:
-                self.errors.append("Missing variables: " + ", ".join(missing_cols))
+                add_on = "Missing variables: " + ", ".join(missing_cols)
+                self.errors.append(add_on)
             return False
         else:
             return True
@@ -206,9 +218,9 @@ class Superplot:
         Parameters
         ----------
         bw : float
-            The percent smoothing to apply to the srtipe outlines. Values should
-            be between 0 and 1. The default value will result in an "optimal" value
-            being used to smoothen the stripes.
+            The percent smoothing to apply to the srtipe outlines.
+            Values should be between 0 and 1. The default value will result
+            in an "optimal" value being used to smoothen the stripes.
 
         Returns
         -------
@@ -223,30 +235,37 @@ class Superplot:
             
             # get limits for fitting the kde 
             for rep in self.unique_reps:
-                sub = self.df[(self.df[self.rep] == rep) & (self.df[self.x] == group)][self.y]
+                sub = self.df[(self.df[self.rep] == rep) &
+                              (self.df[self.x] == group)][self.y]
                 min_cuts.append(sub.min())
                 max_cuts.append(sub.max())
             min_cuts = sorted(min_cuts)
             max_cuts = sorted(max_cuts)
             
             # make linespace of points from highest_min_cut to lowest_max_cut
-            points1 = list(np.linspace(np.nanmin(min_cuts), np.nanmax(max_cuts), num = 128))
+            points1 = list(np.linspace(np.nanmin(min_cuts),
+                                       np.nanmax(max_cuts),
+                                       num = 128))
             points = sorted(list(set(min_cuts + points1 + max_cuts))) 
             
             for rep in self.unique_reps:
                 
-                # first point to catch an empty list caused by uneven rep numbers
+                # first point to catch an empty list
+                # caused by uneven rep numbers
                 try:
-                    sub = self.df[(self.df[self.rep] == rep) & (self.df[self.x] == group)][self.y]
+                    sub = self.df[(self.df[self.rep] == rep) &
+                                  (self.df[self.x] == group)][self.y]
                     arr = np.array(sub)
                     
-                    # remove nan or inf values which could cause a kde ValueError
+                    # remove nan or inf values which 
+                    # could cause a kde ValueError
                     arr = arr[~(np.isnan(arr))]
                     kde = gaussian_kde(arr, bw_method=bw)
                     kde_points = kde.evaluate(points)
                     kde_points = kde_points - np.nanmin(kde_points)
                     
-                    # use min and max to make the kde_points outside that dataset = 0
+                    # use min and max to make the kde_points
+                    # outside that dataset = 0
                     idx_min = min_cuts.index(arr.min())
                     idx_max = max_cuts.index(arr.max())
                     if idx_min > 0:
@@ -270,14 +289,16 @@ class Superplot:
             length = max([len(e) for e in norm_wy])
             
             # rescale norm_wy for display purposes
-            norm_wy = np.array([a if len(a) > 0 else np.zeros(length) for a in norm_wy])
+            norm_wy = [a if len(a) > 0 else np.zeros(length) for a in norm_wy]
+            norm_wy = np.array(norm_wy)
             norm_wy = np.cumsum(norm_wy, axis = 0)
             try:
                 norm_wy = norm_wy / np.nanmax(norm_wy) # [0,1]
             except ValueError:
                 print("Failed to normalize y values")
             
-            # update the dictionary with the normalized data and corresponding x points
+            # update the dictionary with the normalized data
+            # and corresponding x points
             self.subgroup_dict[group]["norm_wy"] = norm_wy
             self.subgroup_dict[group]["px"] = px
     
@@ -351,17 +372,22 @@ class Superplot:
         new_wy = []
         for i in range(len(px)):
             if i == 0:
-                newline = np.append(norm_wy[-1]*-1, np.flipud(right_sides[i]))
+                newline = np.append(norm_wy[-1]*-1,
+                                    np.flipud(right_sides[i]))
             else:
-                newline = np.append(right_sides[i-1], np.flipud(right_sides[i]))
+                newline = np.append(right_sides[i-1],
+                                    np.flipud(right_sides[i]))
             new_wy.append(newline)
         new_wy = np.array(new_wy)
         
         # use last array to plot the outline
         outline_y = np.append(px[-1], np.flipud(px[-1]))
-        outline_x = np.append(norm_wy[-1], np.flipud(norm_wy[-1]) * -1) * total_width + axis_point
+        append_param = np.flipud(norm_wy[-1]) * -1
+        outline_x = np.append(norm_wy[-1],
+                              append_param)*total_width + axis_point
         
-        # Temporary fix; find original source of the bug and correct when time allows
+        # Temporary fix; find original source of the
+        # bug and correct when time allows
         if outline_x[0] != outline_x[-1]:
             xval = round(outline_x[0])
             yval = outline_y[0]
@@ -376,7 +402,8 @@ class Superplot:
             reshaped_y = new_wy[i] * total_width  + axis_point
             
             # plot separating lines and stripes
-            plt.plot(reshaped_y, reshaped_x, c="k", linewidth=self.sep_linewidth)
+            plt.plot(reshaped_y, reshaped_x, c="k",
+                     linewidth=self.sep_linewidth)
             plt.fill(reshaped_y, reshaped_x, color=self.colours[i],
                      label=a, linewidth=self.sep_linewidth)
             
@@ -440,7 +467,8 @@ class Superplot:
             ticks.append(i*2)
             lbls.append(a)            
             
-            # calculate the mean/median value for all replicates of the variable
+            # calculate the mean/median value for
+            # all replicates of the variable
             sub = self.df[self.df[self.x] == a]
             
             # robust mean calculates mean using data
@@ -451,7 +479,8 @@ class Superplot:
                 subs = []
                 for rep in sub[self.rep].unique():
                     
-                    # drop rows containing NaN values as they mess up the subsetting
+                    # drop rows containing NaN values as
+                    # they mess up the subsetting
                     s = sub[sub[self.rep] == rep].dropna()
                     lower = np.percentile(s[self.y], 2.5)
                     upper = np.percentile(s[self.y], 97.5)
@@ -461,8 +490,10 @@ class Superplot:
                 middle_vals = "mean"
             
             # calculate mean from remaining data
-            means = sub.groupby(self.rep, as_index=False).agg({self.y : middle_vals})
-            self._single_subgroup_plot(a, i*2, mid_df=means, total_width=total_width,
+            means = sub.groupby(self.rep,
+                                as_index=False).agg({self.y : middle_vals})
+            self._single_subgroup_plot(a, i*2, mid_df=means,
+                                       total_width=total_width,
                                        linewidth=linewidth)
             
             # get mean or median line of the skeleton plot
@@ -550,9 +581,11 @@ class Superplot:
 
         """
         if centre_val == "robust":
-            means = self.df.groupby([self.rep, self.x], as_index=False).agg({self.y : "mean"})
+            means = self.df.groupby([self.rep, self.x],
+                                    as_index=False).agg({self.y : "mean"})
         else:
-            means = self.df.groupby([self.rep, self.x], as_index=False).agg({self.y : centre_val})
+            means = self.df.groupby([self.rep, self.x],
+                                    as_index=False).agg({self.y : centre_val})
         data = [list(means[means[self.x] == i][self.y]) for i in means[self.x].unique()]
         if len(self.subgroups) > 2:
             # compute one-way ANOVA test results
@@ -597,13 +630,14 @@ class Superplot:
                 y = increment + high
                 h = y + increment
                 plt.plot([x1, x1, x2, x2], [y, h, h, y], lw=1, c="k")
-                plt.text((x1+x2)*.5, h, f"P = {p:.3f}", ha="center", va="bottom",
-                         color="k", fontsize=8)
+                plt.text((x1+x2)*.5, h, f"P = {p:.3f}", ha="center",
+                         va="bottom", color="k", fontsize=8)
                 plt.ylim((low, high+increment*10))
             elif num_groups == 3:
                 labels = [i._text for i in ax.get_xticklabels()]
                 pairs = ((0, 1), (1, 2), (0, 2))
-                y = increment + high # increment = 3% of the range of the y-axis
+                # increment = 3% of the range of the y-axis
+                y = increment + high 
                 text_loc = ["center", "center", "center"]
                 
                 for i,pair in enumerate(pairs):

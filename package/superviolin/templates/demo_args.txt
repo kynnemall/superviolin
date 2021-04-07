@@ -41,6 +41,9 @@ error_bars: SEM
 # stripes in each violin. "None" is the default value, which means an "optimal" # factor will be calculated
 bw: None
 
+# whether the data is paired or not. Default is no.
+paired_data: yes
+
 # overlay statistics on plot. Only works for 2 or 3 conditions.
 stats_on_plot: yes
 
