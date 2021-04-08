@@ -99,8 +99,7 @@ def make_user_data_dir():
     """
     _name = "superviolin"
     _author = "Martin Kenny"
-    _version = "0.9"
-    dirs = AppDirs(_name, _author, _version)
+    dirs = AppDirs(_name, _author)
     user_data_args = os.path.join(dirs.user_data_dir, "args.txt")
     if not os.path.exists(dirs.user_data_dir):
         os.makedirs(dirs.user_data_dir, mode=0o777)     
@@ -110,18 +109,7 @@ def make_user_data_dir():
     return user_data_args
 
 @click.group()
-def cli():
-    """
-    Function to group CLI functions so that when "superviolin" is called 
-    in the terminal, it allows the user to access other functions in this
-    module
-
-    Returns
-    -------
-    None.
-
-    """
-    
+def cli():    
     pass
 
 @cli.command("init", short_help="Create args.txt in current directory")
@@ -139,13 +127,8 @@ def init():
     user_data_args = make_user_data_dir()
     with open(user_data_args, "r") as default:
         txt_data = default.readlines()
-        txt_lines = []
-        for l in txt_data:
-            if l != "\n":
-                txt_lines.append(l)
-            if not l.startswith("#"):
-                txt_lines.append("\n")
-        txt_data = "".join(txt_lines)
+        txt_data = txt_data.replace('\n\n#', '\n#')
+        txt_data = txt_data.replace('\n\n\n#', '\n#')
     with open("args.txt", "w") as f:
         f.write(txt_data)
     click.echo("Created args.txt")
