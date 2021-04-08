@@ -65,6 +65,9 @@ linewidth: 1
 # width of the black lines separating replicates in each violin. Default value: 0.5
 sep_linewidth: 0.5
 
+# whether to show a legend on the superviolin. The legend lists the names of the replicates
+show_legend: no
+
 # colours used for each individual replicates. List of potential colours available
 # at https://matplotlib.org/stable/gallery/color/named_colors.html
 # under the "CSS Colors" heading. Separate colours by ", " e.g. red, blue, green
