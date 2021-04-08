@@ -19,15 +19,16 @@ params["axes.labelsize"] = 9
 params["axes.spines.right"] = False
 params["axes.spines.top"] = False
 params["figure.dpi"] = 300
+params['legend.fontsize'] = 5
 
-class Superplot:
+class Superviolin:
     def __init__(self, filename, data_format, condition="condition", 
                  value="value", replicate="replicate", order="None",
                  centre_val="mean", middle_vals="mean", error_bars="SEM",
                  paired_data="no", stats_on_plot="no", ylimits="None",
                  total_width=0.8, linewidth=1, dataframe=False, dpi=300,
-                 sep_linewidth=1, xlabel="", ylabel="", cmap="Set2",
-                 bw="None"):
+                 sep_linewidth=0.5, xlabel="", ylabel="", cmap="Set2",
+                 bw="None", show_legend="no"):
         self.errors = []
         self.df = dataframe
         self.x = condition if condition != "REPLACE_ME" else "condition"
@@ -44,6 +45,8 @@ class Superplot:
         self.ylimits = ylimits
         self.total_width = total_width
         self.error_bars = error_bars
+        self.show_legend = show_legend
+        self._on_legend = []
         if bw != "None":
             self.bw = bw
         else:
@@ -90,10 +93,12 @@ class Superplot:
                 else:
                     self.cm = plt.get_cmap(cmap)
                     if cmap in qualitative:
-                        self.colours = [self.cm(i / 8) for i in range(len(self.unique_reps))]
+                        self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.unique_reps))]
                     else:
                         divisor = len(self.unique_reps)+2
                         self.colours = [self.cm((i+2) / divisor) for i in range(len(self.unique_reps))]
+                        # shuffle colours
+                        np.random.shuffle(self.colours)
                 if len(self.colours) < len(self.unique_reps):
                     self.errors.append("Not enough colours for each replicate")
                     
@@ -113,7 +118,7 @@ class Superplot:
             self.plot_subgroups(self.centre_val, self.middle_vals,
                                 self.error_bars, self.ylimits,
                                 self.total_width, self.linewidth,
-                                self.stats_on_plot)
+                                self.stats_on_plot, self.show_legend)
             self.get_statistics(self.centre_val, self.paired,
                                 self.stats_on_plot, self.ylimits)
         else:
@@ -401,11 +406,18 @@ class Superplot:
             mid_val = mid_df[mid_df[self.rep] == a][self.y].values
             reshaped_y = new_wy[i] * total_width  + axis_point
             
+            # check if _on_legend contains the rep
+            if a in self._on_legend:
+                lbl = ""
+            else:
+                lbl = a
+                self._on_legend.append(a)
+            
             # plot separating lines and stripes
             plt.plot(reshaped_y, reshaped_x, c="k",
                      linewidth=self.sep_linewidth)
             plt.fill(reshaped_y, reshaped_x, color=self.colours[i],
-                     label=a, linewidth=self.sep_linewidth)
+                     label=lbl, linewidth=self.sep_linewidth,)
             
             # get the mid_val each replicate and find it in reshaped_x
             # then get corresponding point in reshaped_x to plot the points
@@ -420,11 +432,11 @@ class Superplot:
                 x_val = x_vals[0] + ((x_vals[1] - x_vals[0]) / 2)
                 plt.scatter(x_val, mid_val[0], facecolors=self.colours[i],
                             edgecolors="Black", linewidth=self.sep_linewidth,
-                            zorder=2, marker="o", s=scatter_size)
+                            zorder=10, marker="o", s=scatter_size)
         plt.plot(outline_x, outline_y, color="Black", linewidth=linewidth)
         
     def plot_subgroups(self, centre_val, middle_vals, error_bars, ylimits,
-                       total_width, linewidth, statistics):
+                       total_width, linewidth, show_stats, show_legend):
         """
         Plot all subgroups of the df attribute
 
@@ -447,7 +459,7 @@ class Superplot:
         linewidth : float
             Width value for the outlines of each Violin SuperPlot and the 
             summary statistics skeleton plot
-        statistics : string
+        show_stats : string
             Either "yes" or "no" to overlay the statistics on the plot
 
         Returns
@@ -516,18 +528,25 @@ class Superplot:
             
             # plot horizontal lines across the column, centered on the tick
             plt.plot([i*2 - median_width / 1.5, i*2 + median_width / 1.5],
-                         [mid_val, mid_val], lw=linewidth, color="k")
+                         [mid_val, mid_val], lw=linewidth, color="k",
+                         zorder=20)
             for b in [upper, lower]:
                 plt.plot([i*2 - median_width / 4.5, i*2 + median_width / 4.5],
-                         [b, b], lw=linewidth, color="k")
+                         [b, b], lw=linewidth, color="k", zorder=20)
             
             # plot vertical lines connecting the limits
-            plt.plot([i*2, i*2], [lower, upper], lw=linewidth, color="k")  
+            plt.plot([i*2, i*2], [lower, upper], lw=linewidth, color="k",
+                     zorder=20)
+        
+        # add legend
+        if show_legend != "no":
+            plt.legend(loc=1, bbox_to_anchor=(1.1,1.1))
+        
         plt.xticks(ticks, lbls)
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
         plt.tight_layout()
-        if ylimits != "None" and statistics != "yes":
+        if ylimits != "None" and show_stats != "yes":
             lims = (float(i) for i in ylimits.split(", "))
             plt.ylim(lims)
         
@@ -587,7 +606,10 @@ class Superplot:
             means = self.df.groupby([self.rep, self.x],
                                     as_index=False).agg({self.y : centre_val})
         data = [list(means[means[self.x] == i][self.y]) for i in means[self.x].unique()]
-        if len(self.subgroups) > 2:
+        
+        num_groups = len(self.subgroups)
+        
+        if num_groups > 2:
             # compute one-way ANOVA test results
             stat, p = f_oneway(*data)
             
@@ -601,7 +623,7 @@ class Superplot:
             # save statistics to file
             posthoc.to_csv("posthoc_statistics.txt", sep="\t")
             print("Posthoc statistics saved to txt file")
-        else:
+        elif num_groups == 2:
             if paired == "no":
                 # independent t-test
                 stat, p = ttest_ind(data[0], data[1])
@@ -618,7 +640,6 @@ class Superplot:
                     print(f"Paired t-test P-value: {p:.3f}")
                     
         # plot statistics if only 2 or 3 groups
-        num_groups = len(self.subgroups)
         if on_plot == "yes" and num_groups in [2, 3]:
             ax = plt.gca()
             low, high = ax.get_ylim()
