@@ -12,8 +12,11 @@ The superviolin init command generates an "args.txt" file in the current directo
 The superviolin plot command renders the Violin SuperPlot as a figure. This layout can be edited prior to saving.
 
 If any of these commands results in an error, **please email Martin Kenny** with a copy of:
+
 1. The data that caused the error
+
 2. The accompanying args.txt file
+
 3. A txt file containing the console output
 
 ## Superviolin with scripts
