@@ -93,7 +93,8 @@ class Superviolin:
                 else:
                     self.cm = plt.get_cmap(cmap)
                     if cmap in qualitative:
-                        self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.unique_reps))]
+                        # self.colours = [self.cm(i / len(self.unique_reps)) for i in range(len(self.unique_reps))]
+                        self.colours = [self.cm(i / self.cm.N) for i in range(len(self.unique_reps))]
                     else:
                         divisor = len(self.unique_reps)+2
                         self.colours = [self.cm((i+2) / divisor) for i in range(len(self.unique_reps))]
