@@ -1,0 +1,3 @@
+[console_scripts]
+superviolin = superviolin.plot_cli:cli
+

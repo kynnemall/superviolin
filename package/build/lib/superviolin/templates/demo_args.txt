@@ -1,0 +1,73 @@
+# IMPORTANT:        Users must change the following 4 arguments before trying to generate the superplot
+# tidy or untidy format
+data_format: tidy
+
+# variable to display on the x axis
+condition: drug
+
+# variable to display on the y axis
+value: variable
+
+# variable used to denote experimental replicates
+replicate: replicate
+
+# csv file or Microsoft Excel file containing data in tidy data format
+filename: demo_data.csv
+
+
+# the label for the x axis. To have no label on the x axis, don't change the default value.
+xlabel: REPLACE_ME
+
+# label for the y axis. To have no label on the y axis, don't change the default value.
+ylabel: Spreading area ($\mu$$m^2$)
+
+
+# The following arguments below may be changed as the user desires
+
+# order of the experimental conditions from left to right
+# must be separated by ", " e.g. Control, Drug
+order: Control, Drug
+
+# use mean (default) or median to position the scatterpoints over each replicate
+centre_val: mean
+
+# use mean or median from each experimental replicate. Used to calculate the centre_val. Default: mean
+middle_vals: mean
+
+# standard error of the mean (SEM, default), standard deviation (SD), or 95% confidence interval (CI) if using median
+error_bars: SEM
+
+# bandwidth of the fitted kernel density estimators. Determines smoothening of the
+# stripes in each violin. "None" is the default value, which means an "optimal" # factor will be calculated
+bw: None
+
+# whether the data is paired or not. Default is no.
+paired_data: yes
+
+# overlay statistics on plot. Only works for 2 or 3 conditions.
+stats_on_plot: yes
+
+# minimum and maximum y values to display on the y-axis e.g. 1, 5. Default value: None
+ylimits: None
+
+# width of each violinplot. Default value: 0.8
+total_width: 0.8
+
+# width of the black lines around each violinplot and the skeleton plot. Default value: 1
+linewidth: 1
+
+# width of the black lines separating replicates in each violin. Default value: 0.5
+sep_linewidth: 0.5
+
+# whether to show a legend on the superviolin. The legend lists the names of the replicates
+show_legend: no
+
+# colours used for each individual replicates. List of potential colours available
+# at https://matplotlib.org/stable/gallery/color/named_colors.html
+# under the "CSS Colors" heading. Separate colours by ", " e.g. red, blue, green
+# alternatively, use a colour map from
+# https://matplotlib.org/stable/tutorials/colors/colormaps.html
+cmap: Set2
+
+# dpi used for rendering and saving Violin SuperPlots
+dpi: 600

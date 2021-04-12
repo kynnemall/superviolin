@@ -1,0 +1,9 @@
+appdirs
+click
+matplotlib
+numpy
+pandas
+scipy
+xlrd
+openpyxl
+scikit-posthocs
