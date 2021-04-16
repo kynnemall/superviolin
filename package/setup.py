@@ -14,7 +14,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
       name = "superviolin",
-      version = 0.11,
+      version = 0.12,
       py_modules = ['plot_cli', 'plot'],
       url = "",
       description = "Python CLI to make Violin SuperPlots",
@@ -28,7 +28,7 @@ setup(
       entry_points = {
                       'console_scripts': ['superviolin=superviolin.plot_cli:cli']
                       },
-      python_requires = ">=3.6",
+      python_requires = ">=3.6.2",
       install_requires = [
           "appdirs",
           "click",
@@ -45,7 +45,7 @@ setup(
                             'demo_args.txt']
                             },
       classifiers = [
-          "Programming Language :: Python :: 3.6",
+          "Programming Language :: Python :: 3.6.2",
           "Programming Language :: Python :: 3.7",
           "Programming Language :: Python :: 3.8",
           "Programming Language :: Python :: 3.9",
