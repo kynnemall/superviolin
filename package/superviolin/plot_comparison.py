@@ -114,8 +114,8 @@ def make_superviolins():
         print(f)
         # reduce line thickness to 0.2
         test = Superviolin(f, 'tidy', value='variable', xlabel='', ylabel='',
-                           cmap='tab20', ylimits= "-1, 25",
-                           sep_linewidth=0.2)
+                           cmap='tab20', ylimits= "-4.5, 21",
+                           sep_linewidth=0.2, error_bars='SD')
         # define custom color map (24)
         from matplotlib.colors import rgb2hex
         cmap = plt.get_cmap('tab20')
