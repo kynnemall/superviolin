@@ -9,6 +9,7 @@ Created on Sat Jan 9 13:49:42 2021
 import io
 import os
 import pkgutil
+
 import click
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -102,7 +103,7 @@ def make_user_data_dir():
     dirs = AppDirs(_name, _author)
     user_data_args = os.path.join(dirs.user_data_dir, "args.txt")
     if not os.path.exists(dirs.user_data_dir):
-        os.makedirs(dirs.user_data_dir, mode=0o777)     
+        os.makedirs(dirs.user_data_dir, mode=0o777)  
     txt_data = pkgutil.get_data(__name__, "templates/args.txt").decode()
     with open(user_data_args, "w") as f:
         f.write(txt_data)
@@ -127,7 +128,7 @@ def init():
     user_data_args = make_user_data_dir()
     with open(user_data_args, "r") as default:
         txt_data = default.read()
-        txt_data = txt_data.replace('\n\n#', '\n#')
+        # txt_data = txt_data.replace('\n\n#', '\n#')
         txt_data = txt_data.replace('\n\n\n#', '\n#')
     with open("args.txt", "w") as f:
         f.write(txt_data)

@@ -268,9 +268,6 @@ class Superviolin:
                     # could cause a kde ValueError
                     arr = arr[~(np.isnan(arr))]
                     kde = gaussian_kde(arr, bw_method=bw)
-                    if bw == None:
-                        scott = kde.scotts_factor()
-                        print(f"Fitting KDE with Scott's Factor: {scott:.3f}")
                     kde_points = kde.evaluate(points)
                     # kde_points = kde_points - np.nanmin(kde_points) #why?
                     
@@ -301,6 +298,12 @@ class Superviolin:
                     px.append(self._interpolate_nan(points))
             px = np.array(px)
             
+            # print Scott's factor to the console to help users
+            # choose alternative values for bw
+            if bw == None:
+                scott = kde.scotts_factor()
+                print(f"Fitting KDE with Scott's Factor: {scott:.3f}")
+            
             # catch the error when there is an empty list added to the dictionary
             length = max([len(e) for e in norm_wy])
             
@@ -313,7 +316,6 @@ class Superviolin:
             except ValueError:
                 print("Failed to normalize y values")
             
-            print(np.sum(norm_wy, axis=1) / sum(norm_wy[0]))
             # update the dictionary with the normalized data
             # and corresponding x points
             self.subgroup_dict[group]["norm_wy"] = norm_wy
