@@ -107,12 +107,16 @@ def generate_fakes():
         savename = f"fake_bio-reps-{b}_tech-reps-{r}.csv"
         data.to_csv(savename, index=False)
     
-def make_superviolins():
+def make_superviolins(many=False, save=False):
     os.chdir(r'C:\Users\martinkenny\OneDrive - Royal College of Surgeons in Ireland\Documents\Writing\My papers\Superplot letter\fake_data_grid')
-    files = [i for i in os.listdir() if i.endswith('csv')]
+    if many:
+        files = [i for i in os.listdir() if i.endswith('csv')]
+    else:
+        files = ["fake_bio-reps-03_tech-reps-0006.csv"]
     for f in files:
         print(f)
         # reduce line thickness to 0.2
+        global test
         test = Superviolin(f, 'tidy', value='variable', xlabel='', ylabel='',
                            cmap='tab20', ylimits= "-4.5, 21",
                            sep_linewidth=0.2, error_bars='SD')
@@ -124,11 +128,13 @@ def make_superviolins():
         
         test.generate_plot()
         plt.tight_layout()
-        # save svg
-        savename = f.replace('csv', 'svg')
-        plt.savefig(savename, dpi=600)
-        # save png
-        savename = f.replace('csv', 'png')
-        plt.savefig(savename, dpi=600)
-        plt.close()
-    print(custom_cmap[:24])
+        if save:
+            # save svg
+            savename = f.replace('csv', 'svg')
+            plt.savefig(savename, dpi=600)
+            # save png
+            savename = f.replace('csv', 'png')
+            plt.savefig(savename, dpi=600)
+            plt.close()
+            
+make_superviolins(True, True)

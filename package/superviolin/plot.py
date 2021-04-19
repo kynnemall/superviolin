@@ -224,9 +224,10 @@ class Superviolin:
         Parameters
         ----------
         bw : float
-            The percent smoothing to apply to the srtipe outlines.
+            The percent smoothing to apply to the stripe outlines.
             Values should be between 0 and 1. The default value will result
-            in an "optimal" value being used to smoothen the stripes.
+            in an "optimal" value being used to smoothen the stripes. This
+            value is calculated using Scott's Rule
 
         Returns
         -------
@@ -252,7 +253,7 @@ class Superviolin:
             points1 = list(np.linspace(np.nanmin(min_cuts),
                                        np.nanmax(max_cuts),
                                        num = 128))
-            points = sorted(list(set(min_cuts + points1 + max_cuts))) 
+            points = sorted(list(set(min_cuts + points1 + max_cuts)))
             
             for rep in self.unique_reps:
                 
@@ -267,8 +268,11 @@ class Superviolin:
                     # could cause a kde ValueError
                     arr = arr[~(np.isnan(arr))]
                     kde = gaussian_kde(arr, bw_method=bw)
+                    if bw == None:
+                        scott = kde.scotts_factor()
+                        print(f"Fitting KDE with Scott's Factor: {scott:.3f}")
                     kde_points = kde.evaluate(points)
-                    kde_points = kde_points - np.nanmin(kde_points)
+                    # kde_points = kde_points - np.nanmin(kde_points) #why?
                     
                     # use min and max to make the kde_points
                     # outside that dataset = 0
@@ -281,9 +285,15 @@ class Superviolin:
                         if idx_max - len(max_cuts) != -1:
                             kde_points[idx+1] = 0
                     
-                    # remove nan from arrays prior to combining into dictionary
+                    # remove nan prior to combining arrays into dictionary
                     kde_wo_nan = self._interpolate_nan(kde_points)
                     points_wo_nan = self._interpolate_nan(points)
+                    
+                    # normalize each stripe's area to a constant
+                    # so that they all have the same area when plotted
+                    area = 30
+                    kde_wo_nan = (area / sum(kde_wo_nan)) * kde_wo_nan
+                    
                     norm_wy.append(kde_wo_nan)
                     px.append(points_wo_nan)
                 except ValueError:
@@ -303,6 +313,7 @@ class Superviolin:
             except ValueError:
                 print("Failed to normalize y values")
             
+            print(np.sum(norm_wy, axis=1) / sum(norm_wy[0]))
             # update the dictionary with the normalized data
             # and corresponding x points
             self.subgroup_dict[group]["norm_wy"] = norm_wy
