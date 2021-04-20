@@ -300,9 +300,12 @@ class Superviolin:
             
             # print Scott's factor to the console to help users
             # choose alternative values for bw
-            if bw == None:
-                scott = kde.scotts_factor()
-                print(f"Fitting KDE with Scott's Factor: {scott:.3f}")
+            try:
+                if bw == None:
+                    scott = kde.scotts_factor()
+                    print(f"Fitting KDE with Scott's Factor: {scott:.3f}")
+            except UnboundLocalError:
+                pass
             
             # catch the error when there is an empty list added to the dictionary
             length = max([len(e) for e in norm_wy])
