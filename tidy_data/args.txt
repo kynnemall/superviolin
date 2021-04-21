@@ -42,7 +42,7 @@ replicate: replicate
 
 # must be separated by ", " e.g. Control, Drug
 
-order: 1,2,0,3
+order: 1, 2, 0, 3
 
 # use mean (default) or median to position the scatterpoints over each replicate
 
