@@ -9,6 +9,9 @@ on:
 
 jobs:
   deploy:
+    defaults:
+      run:
+        working-directory: ./superviolin
 
     runs-on: ubuntu-latest
 
