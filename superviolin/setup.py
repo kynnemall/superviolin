@@ -14,13 +14,8 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
 
 setup(
       name = "superviolin",
-<<<<<<< HEAD
-      version = 0.13,
-      py_modules = ["plot_cli", "plot"],
-=======
+      py_modules = ["plot_cli", "plot"],      
       version = "0.13.1",
-      py_modules = ['plot_cli', 'plot'],
->>>>>>> 5fc89cde8374b1e9cc4c2b4e82112cc78e96016e
       url = "",
       description = "Python CLI to make Violin SuperPlots",
       long_description = long_description,
