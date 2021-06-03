@@ -11,9 +11,11 @@ import os
 import pkgutil
 
 import click
+import unittest
 import pandas as pd
 import matplotlib.pyplot as plt
 from appdirs import AppDirs
+from superviolin import test_plot
 from superviolin.plot import Superviolin
 
 def process_txt(txt):
@@ -68,7 +70,7 @@ def get_args(demonstration=False, preferences=False):
 
     """
     if demonstration:
-        txt_data = pkgutil.get_data(__name__, "templates/demo_args.txt").decode()
+        txt_data = pkgutil.get_data(__name__, "res/demo_args.txt").decode()
         lines = txt_data.split("\n")
         arg_dict = process_txt(lines)
         return arg_dict
@@ -104,7 +106,7 @@ def make_user_data_dir():
     user_data_args = os.path.join(dirs.user_data_dir, "args.txt")
     if not os.path.exists(dirs.user_data_dir):
         os.makedirs(dirs.user_data_dir, mode=0o777)  
-    txt_data = pkgutil.get_data(__name__, "templates/args.txt").decode()
+    txt_data = pkgutil.get_data(__name__, "res/args.txt").decode()
     with open(user_data_args, "w") as f:
         f.write(txt_data)
     return user_data_args
@@ -168,8 +170,22 @@ def demo():
     """
     
     d = get_args(demonstration=True)
-    bytedata = pkgutil.get_data(__name__, "templates/demo_data.csv")
+    bytedata = pkgutil.get_data(__name__, "res/demo_data.csv")
     df = pd.read_csv(io.BytesIO(bytedata))
     violin = Superviolin(**d, dataframe=df)
     violin.generate_plot()
     plt.show()
+    
+@cli.command("test", short_help="Test the Superviolin class to ensure it is working")
+def test():
+    """
+    Run tests using the package to ensure everything is working as expected
+    
+    Returns
+    -------
+    None.
+
+    """
+    suite = unittest.TestLoader().loadTestsFromModule(test_plot)
+    unittest.TextTestRunner(verbosity=2).run(suite)
+    

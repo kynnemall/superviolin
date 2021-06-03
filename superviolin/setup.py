@@ -9,24 +9,24 @@ from os import path
 from setuptools import setup, find_packages
 
 this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
       name = "superviolin",
       version = 0.13,
-      py_modules = ['plot_cli', 'plot'],
+      py_modules = ["plot_cli", "plot"],
       url = "",
       description = "Python CLI to make Violin SuperPlots",
       long_description = long_description,
-      long_description_content_type = 'text/markdown',
+      long_description_content_type = "text/markdown",
       author = "Martin Kenny",
       author_email = "sideproject1892@gmail.com",
       maintainer = "Martin Kenny",
       maintainer_email = "sideproject1892@gmail.com",
       packages = find_packages(),
       entry_points = {
-                      'console_scripts': ['superviolin=superviolin.plot_cli:cli']
+                      "console_scripts": ["superviolin=superviolin.plot_cli:cli"]
                       },
       python_requires = ">=3.6.2",
       install_requires = [
@@ -40,10 +40,11 @@ setup(
           "openpyxl",
           "scikit-posthocs"
           ],
-      package_data = {'' : ['demo_data.csv',
-                            'args.txt',
-                            'demo_args.txt']
-                            },
+      package_data = {"" : ["demo_data.csv",
+                            "args.txt",
+                            "demo_args.txt",
+                            "test.pkl"]
+                      },
       classifiers = [
           "Programming Language :: Python :: 3.6.2",
           "Programming Language :: Python :: 3.7",
