@@ -37,11 +37,11 @@ class TestingSuperplotMethods(unittest.TestCase):
             self.lines.append(arr)
         plt.close()
     
-    def test_plotted_data(self,):
+    def test_plotted_lines_2_conditions(self):
         # load expected data
         bytedata = pkgutil.get_data(__name__, "res/test.pkl")
-        real_lines = io.BytesIO(bytedata)
-        real_lines = np.load(real_lines, allow_pickle=True)
+        bytelines = io.BytesIO(bytedata)
+        real_lines = np.load(bytelines, allow_pickle=True)
         
         # compare generated data with expected data
         for a,b in zip(self.lines, real_lines):
