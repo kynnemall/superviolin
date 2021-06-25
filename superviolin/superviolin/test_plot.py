@@ -6,7 +6,6 @@ Created on Fri Mar 26 10:44:09 2021
 """
 
 import io
-import pickle
 import pkgutil
 import unittest
 import numpy as np
