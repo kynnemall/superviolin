@@ -1,4 +1,4 @@
-*When using this package to generate Violin SuperPlots for your publications, please cite the commentary from the authors: INSERT WHEN PUBLISHED*
+*When using this package to generate Violin SuperPlots for your publications, please cite the [commentary](https://www.molbiolcell.org/doi/10.1091/mbc.E21-03-0130) from the authors*
 
 ## Superviolin CLI commands
 
