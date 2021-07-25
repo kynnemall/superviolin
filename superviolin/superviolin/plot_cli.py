@@ -130,7 +130,6 @@ def init():
     user_data_args = make_user_data_dir()
     with open(user_data_args, "r") as default:
         txt_data = default.read()
-        # txt_data = txt_data.replace('\n\n#', '\n#')
         txt_data = txt_data.replace('\n\n\n#', '\n#')
     with open("args.txt", "w") as f:
         f.write(txt_data)

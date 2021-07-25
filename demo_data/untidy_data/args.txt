@@ -62,7 +62,7 @@ bw: 0.05
 
 # overlay statistics on plot. Only works for 2 or 3 conditions.
 
-statistics: yes
+stats_on_plot: yes
 
 # minimum and maximum y values to display on the y-axis e.g. 1, 5. Default value: None
 

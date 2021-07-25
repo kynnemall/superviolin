@@ -22,7 +22,7 @@ params["figure.dpi"] = 300
 params['legend.fontsize'] = 5
 
 class Superviolin:
-    def __init__(self, filename, data_format, condition="condition", 
+    def __init__(self, filename="", data_format="tidy", condition="condition", 
                  value="value", replicate="replicate", order="None",
                  centre_val="mean", middle_vals="mean", error_bars="SEM",
                  paired_data="no", stats_on_plot="no", ylimits="None",
@@ -177,10 +177,10 @@ class Superviolin:
 
         """
         if "bool" in str(type(self.df)):
-            if filename.endswith("csv") and filename in os.listdir():
+            if filename.endswith("csv"):
                 self.df = pd.read_csv(filename)
                 return True
-            elif ".xl" in filename and filename in os.listdir():
+            elif ".xl" in filename:
                 if data_format == "tidy":
                     self.df = pd.read_excel(filename)
                 else:
