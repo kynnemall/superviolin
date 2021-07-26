@@ -6,6 +6,7 @@ Created on Sat Jul 24 16:21:59 2021
 @author: martin
 """
 
+import base64
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
@@ -18,7 +19,10 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 st.title("Official Violin SuperPlot Web App")
 st.markdown("""
         This web app uses the _Superviolin_ Python package created as part of 
-        the paper **Violin SuperPlots: Visualizing heterogeneity in large datasets** 
+        the paper
+        
+        [**Violin SuperPlots: Visualizing heterogeneity in large datasets**](https://www.molbiolcell.org/doi/10.1091/mbc.E21-03-0130) 
+        
         to generate Violin SuperPlots based on your uploaded data. You can then download the
         resulting plot as an SVG or PNG file.
         """)
@@ -42,28 +46,18 @@ ylims = col1.text_input("Min and max limits for Y axis", "None")
 stats_on_plot = col2.radio("Show statistics on plot (only works for 2 conditions)",
                            ("Yes", "No"))
 dpi = col1.text_input("DPI for saving the Violin SuperPlot", "1200")
-save_format = col1.text_input("Figure save format", "svg")
+save_format = col2.radio("Figure save format", ("svg", "png"))
 
 uploaded_file = st.file_uploader("Upload a CSV or Excel file")
 
 # process logic to make superviolin
 if uploaded_file is not None:
-    fname = datetime.now().strftime(
-        "%Y%m%d_%H-%M-%S_ViolinSuperPlot"
-        ) + f".{save_format}"
-    save = col2.radio("Save figure", ("Yes", "No"))
     if suffix == "CSV":
         df = pd.read_csv(uploaded_file)
     else:
         df = pd.read_excel(uploaded_file)
         
-    if tidy == "Tidy":
-        plot = Superviolin(dataframe=df, xlabel=xlabel,
-                   condition=condition, value=value, replicate=replicate,
-                   centre_val=centre_vals.lower(), ylabel=ylabel,
-                   middle_vals=mid_vals.lower(), error_bars=error_bars,
-                   stats_on_plot=stats_on_plot.lower(), dpi=int(dpi))
-    else:
+    if tidy != "Tidy":
         # read multiple sheets in "untidy" format
         xl = pd.ExcelFile(uploaded_file)
         sheets = xl.sheet_names # replicates
@@ -78,17 +72,24 @@ if uploaded_file is not None:
                 dfs.append(df)
         df = pd.concat(dfs)
         
-        plot = Superviolin(dataframe=df,
-                   condition=condition, value=value, replicate=replicate,
-                   centre_val=centre_vals.lower(), xlabel=xlabel,
-                   middle_vals=mid_vals.lower(), error_bars=error_bars,
-                   ylabel=ylabel, stats_on_plot=stats_on_plot.lower(),
-                   dpi=int(dpi))
+    plot = Superviolin(dataframe=df, condition=condition, value=value,
+                       replicate=replicate, centre_val=centre_vals.lower(),
+                       xlabel=xlabel, middle_vals=mid_vals.lower(),
+                       error_bars=error_bars, ylabel=ylabel,
+                       stats_on_plot=stats_on_plot.lower(), dpi=int(dpi))
     plot.generate_plot()
-    if save == "Yes":
-        plt.savefig(fname, dpi=int(dpi))
+    plt.savefig(f"ViolinSuperPlot.{save_format}", dpi=int(dpi))
     st.pyplot()
     
-    # download the plot and the statistics
+    # show statistics
+    
+    # download the plot
     def download():
-        pass
+        time = datetime.now().strftime("%Y%m%d_%H-%M-%S_ViolinSuperPlot")
+        fname = f"{time}.{save_format}"
+        with open(f"ViolinSuperPlot.{save_format}", "rb") as f:
+            data = f.read()
+            b64 = base64.b64encode(data).decode()
+        ref = f'<a href="data:application/octet-stream;base64,{b64}" download={fname}>Download Violin SuperPlot</a>'
+        return ref
+    st.markdown(download(), unsafe_allow_html=True)
