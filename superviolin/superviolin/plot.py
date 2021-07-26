@@ -28,7 +28,7 @@ class Superviolin:
                  paired_data="no", stats_on_plot="no", ylimits="None",
                  total_width=0.8, linewidth=1, dataframe=False, dpi=300,
                  sep_linewidth=0.5, xlabel="", ylabel="", cmap="Set2",
-                 bw="None", show_legend="no"):
+                 bw="None", show_legend="no", return_stats=False):
         self.errors = []
         self.df = dataframe
         self.x = condition if condition != "REPLACE_ME" else "condition"
@@ -42,6 +42,7 @@ class Superviolin:
         self.centre_val = centre_val
         self.paired = paired_data
         self.stats_on_plot = stats_on_plot
+        self.return_stats = return_stats
         self.ylimits = ylimits
         self.total_width = total_width
         self.error_bars = error_bars
@@ -120,8 +121,14 @@ class Superviolin:
                                 self.error_bars, self.ylimits,
                                 self.total_width, self.linewidth,
                                 self.stats_on_plot, self.show_legend)
-            self.get_statistics(self.centre_val, self.paired,
-                                self.stats_on_plot, self.ylimits)
+            if self.return_stats:
+                p, info = self.get_statistics(self.centre_val, self.paired,
+                                    self.stats_on_plot, self.ylimits,
+                                    self.return_stats)
+                return p, info
+            else:
+                self.get_statistics(self.centre_val, self.paired,
+                                    self.stats_on_plot, self.ylimits)
         else:
             if len(self.errors) == 1:
                 print("Caught 1 error")
@@ -478,6 +485,8 @@ class Superviolin:
             summary statistics skeleton plot
         show_stats : string
             Either "yes" or "no" to overlay the statistics on the plot
+        show_legend : bool
+            True to show a legend on the generated plot
 
         Returns
         -------
@@ -591,7 +600,8 @@ class Superviolin:
         return array[idx]
     
     def get_statistics(self, centre_val="mean", paired="no",
-                       on_plot="yes", ylimits="None"):
+                       on_plot="yes", ylimits="None",
+                       return_=False):
         """
         Determine appropriate statistics for the dataset, output statistics in
         txt file if there are 3 or more groups, and overlay on plot (optional).
@@ -610,10 +620,12 @@ class Superviolin:
         ylimits : string, optional
             User-specified ylimits in the form (lower, upper) where lower and 
             upper are float values. The default is "None".
-
+        return_ : bool
+            Whether to return the statistics data or not
+            
         Returns
         -------
-        None.
+        if return_ == True, return statistics
 
         """
         if centre_val == "robust":
@@ -697,4 +709,10 @@ class Superviolin:
                 lims = (float(i) for i in ylimits.split(", "))
                 plt.ylim(lims)
             plt.tight_layout()
+        
+        if return_:
+            if num_groups == 2:
+                return p, paired
+            else:
+                return p, posthoc
         
