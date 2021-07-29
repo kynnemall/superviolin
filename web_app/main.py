@@ -32,6 +32,8 @@ suffix = col2.radio("Choose a file format", ("CSV", "Excel"))
 condition = col1.text_input("Name of the conditions column in your data")
 value = col1.text_input("Name of the value column in your data")
 replicate = col1.text_input("Name of the replicate column in your data")
+order = col1.text_input("Order of the variables as they should appear on the X axis\nseparated by a comma and a single space",
+                        "None")
 xlabel = col1.text_input("Label for the X axis")
 
 mid_vals = col2.radio("Mean or median per replicate", ("Mean", "Median"))
@@ -40,7 +42,7 @@ error_bars = col2.radio("Choose format for error bars", ("SEM", "SD", "95% CI"))
 ylabel = col1.text_input("Label for the Y axis")
 cmap = col1.text_input("Choose a colour map for the replicates", "Set2")
 ylims = col1.text_input("Min and max limits for Y axis", "None")
-bw = col1.text_input("BW value for smoothing the outlines (decimal or None)", "None")
+bw = col1.text_input("BW value for smoothing the outlines decimal between 0 and 1, or None)", "None")
 
 paired = col2.radio("Paired data", ("Yes", "No"))
 stats_on_plot = col2.radio("Show statistics on plot (only works for 2 conditions)",
@@ -84,7 +86,7 @@ if uploaded_file is not None:
                        error_bars=error_bars, ylabel=ylabel, bw=bw,
                        stats_on_plot=stats_on_plot.lower(), dpi=int(dpi),
                        paired_data=paired.lower(), return_stats=show_stats,
-                       cmap=cmap)
+                       cmap=cmap, order=order)
     p, info = plot.generate_plot()
     plt.savefig(f"ViolinSuperPlot.{save_format}", dpi=int(dpi))
     st.pyplot()
