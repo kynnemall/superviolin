@@ -22,6 +22,8 @@ st.markdown("""
         the editorial [**Violin SuperPlots: Visualizing heterogeneity in large datasets**](https://www.molbiolcell.org/doi/10.1091/mbc.E21-03-0130) 
         to generate Violin SuperPlots based on your uploaded data. You can then download the
         resulting plot in SVG or PNG format.
+
+        This web app works similarly to the Python package and uses input similar to those described in section 3 of the [**documentation**](https://github.com/kynnemall/superviolin/blob/master/documentation.pdf)
         """)
 
 col1,col2 = st.beta_columns(2)
