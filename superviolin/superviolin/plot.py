@@ -128,7 +128,8 @@ class Superviolin:
                 return p, info
             else:
                 self.get_statistics(self.centre_val, self.paired,
-                                    self.stats_on_plot, self.ylimits)
+                                    self.stats_on_plot, self.ylimits,
+                                    self.return_stats)
         else:
             if len(self.errors) == 1:
                 print("Caught 1 error")
@@ -715,4 +716,4 @@ class Superviolin:
                 return p, paired
             else:
                 return p, posthoc
-        
+            

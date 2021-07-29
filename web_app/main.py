@@ -19,12 +19,9 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 st.title("Official Violin SuperPlot Web App")
 st.markdown("""
         This web app uses the _Superviolin_ Python package created as part of 
-        the paper
-        
-        [**Violin SuperPlots: Visualizing heterogeneity in large datasets**](https://www.molbiolcell.org/doi/10.1091/mbc.E21-03-0130) 
-        
+        the editorial [**Violin SuperPlots: Visualizing heterogeneity in large datasets**](https://www.molbiolcell.org/doi/10.1091/mbc.E21-03-0130) 
         to generate Violin SuperPlots based on your uploaded data. You can then download the
-        resulting plot as an SVG or PNG file.
+        resulting plot in SVG or PNG format.
         """)
 
 col1,col2 = st.beta_columns(2)
@@ -41,8 +38,9 @@ mid_vals = col2.radio("Mean or median per replicate", ("Mean", "Median"))
 centre_vals = col2.radio("Mean or median for overall statistics", ("Mean", "Median"))
 error_bars = col2.radio("Choose format for error bars", ("SEM", "SD", "95% CI"))
 ylabel = col1.text_input("Label for the Y axis")
+cmap = col1.text_input("Choose a colour map for the replicates", "Set2")
 ylims = col1.text_input("Min and max limits for Y axis", "None")
-bw = col1.text_input("BW value for smoothing the outlines (decimal)", "None")
+bw = col1.text_input("BW value for smoothing the outlines (decimal or None)", "None")
 
 paired = col2.radio("Paired data", ("Yes", "No"))
 stats_on_plot = col2.radio("Show statistics on plot (only works for 2 conditions)",
@@ -76,12 +74,17 @@ if uploaded_file is not None:
         
     if bw != "None":
         bw = float(bw)
+    if stats_on_plot == "Yes":
+        show_stats = True
+    else:
+        show_stats = False
     plot = Superviolin(dataframe=df, condition=condition, value=value,
                        replicate=replicate, centre_val=centre_vals.lower(),
                        xlabel=xlabel, middle_vals=mid_vals.lower(),
                        error_bars=error_bars, ylabel=ylabel, bw=bw,
                        stats_on_plot=stats_on_plot.lower(), dpi=int(dpi),
-                       paired_data=paired.lower())
+                       paired_data=paired.lower(), return_stats=show_stats,
+                       cmap=cmap)
     p, info = plot.generate_plot()
     plt.savefig(f"ViolinSuperPlot.{save_format}", dpi=int(dpi))
     st.pyplot()
