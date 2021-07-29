@@ -90,6 +90,14 @@ if uploaded_file is not None:
     st.pyplot()
     
     # show statistics
+    if len(plot.subgroups) == 2:
+        if paired == "yes":
+            st.write(f"Paired t-test p-value {p:.3f}")
+        else:
+            st.write(f"Unpaired t-test p-value {p:.3f}")
+    else:
+        st.write(f"One-way ANOVA p-value {p:.3f}. Table of Tukey posthoc statistics")
+        st.table(info)
     
     # download the plot
     def download():
