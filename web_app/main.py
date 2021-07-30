@@ -24,7 +24,7 @@ st.markdown("""
         resulting plot in SVG or PNG format.
 
         This web app works similarly to the Python package and uses input similar to those described in section 3 of the [**documentation**](https://github.com/kynnemall/superviolin/blob/master/documentation.pdf).
-        Please specify the columns in your data, the file format, and whether your data is in the tidy format or not, before uploading any data. Any adjustments you make to the settings will be applied automatically.
+        Please specify the columns in your data, the file format, and whether your data is in the tidy format or not, before uploading your data. Any adjustments you make to the settings will be applied automatically.
         """)
 
 col1,col2 = st.beta_columns(2)
@@ -114,3 +114,5 @@ if uploaded_file is not None:
         ref = f'<a href="data:application/octet-stream;base64,{b64}" download={fname}>Download Violin SuperPlot</a>'
         return ref
     st.markdown(download(), unsafe_allow_html=True)
+
+    st.markdown("Please cite our publication if you use a Violin SuperPlot in your work. Issues can be reported to Martin on [Twitter](https://twitter.com/MartinPlatelet) via direct message")
