@@ -23,7 +23,8 @@ st.markdown("""
         to generate Violin SuperPlots based on your uploaded data. You can then download the
         resulting plot in SVG or PNG format.
 
-        This web app works similarly to the Python package and uses input similar to those described in section 3 of the [**documentation**](https://github.com/kynnemall/superviolin/blob/master/documentation.pdf)
+        This web app works similarly to the Python package and uses input similar to those described in section 3 of the [**documentation**](https://github.com/kynnemall/superviolin/blob/master/documentation.pdf).
+        Please specify the columns in your data, the file format, and whether your data is in the tidy format or not, before uploading any data. Any adjustments you make to the settings will be applied automatically.
         """)
 
 col1,col2 = st.beta_columns(2)
@@ -44,7 +45,7 @@ error_bars = col2.radio("Choose format for error bars", ("SEM", "SD", "95% CI"))
 ylabel = col1.text_input("Label for the Y axis")
 cmap = col1.text_input("Choose a colour map for the replicates", "Set2")
 ylims = col1.text_input("Min and max limits for Y axis", "None")
-bw = col1.text_input("BW value for smoothing the outlines decimal between 0 and 1, or None)", "None")
+bw = col1.text_input("BW value for smoothing the outlines (decimal between 0 and 1, or None)", "None")
 
 paired = col2.radio("Paired data", ("Yes", "No"))
 stats_on_plot = col2.radio("Show statistics on plot (only works for 2 conditions)",
@@ -100,7 +101,7 @@ if uploaded_file is not None:
         else:
             st.write(f"Unpaired t-test p-value {p:.3f}")
     else:
-        st.write(f"One-way ANOVA p-value {p:.3f}. Table of Tukey posthoc statistics")
+        st.write(f"One-way ANOVA p-value {p:.3f}; Table of Tukey posthoc statistics:")
         st.table(info)
     
     # download the plot
