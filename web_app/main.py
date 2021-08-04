@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 from superviolin.plot import Superviolin
 
-st.set_page_config(page_title="Violin SuperPlot Web App")
+st.set_page_config(page_title="Violin SuperPlot Web App", page_icon="violin")
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 st.title("Official Violin SuperPlot Web App")
@@ -24,8 +24,13 @@ st.markdown("""
         resulting plot in SVG or PNG format.
 
         This web app works similarly to the Python package and uses input similar to those described in section 3 of the [**documentation**](https://github.com/kynnemall/superviolin/blob/master/documentation.pdf).
-        Please specify the columns in your data, the file format, and whether your data is in the tidy format or not, before uploading your data. Any adjustments you make to the settings will be applied automatically.
+        Please specify the columns in your data, the file format, and whether your data is in the tidy format or not, before uploading your data.
+        **If your data is in the untidy format, please provide column names so the app can process your data.**
+        Any adjustments you make to the settings will be applied automatically.
+        
+        Issues can be reported to Martin on [Twitter](https://twitter.com/MartinPlatelet) via direct message
         """)
+st.markdown("**Required settings (must be specified before uploading data)**")
 
 col1,col2 = st.beta_columns(2)
 
@@ -35,25 +40,29 @@ suffix = col2.radio("Choose a file format", ("CSV", "Excel"))
 condition = col1.text_input("Name of the conditions column in your data")
 value = col1.text_input("Name of the value column in your data")
 replicate = col1.text_input("Name of the replicate column in your data")
-order = col1.text_input("Order of the variables as they should appear on the X axis\nseparated by a comma and a single space",
-                        "None")
-xlabel = col1.text_input("Label for the X axis")
 
-mid_vals = col2.radio("Mean or median per replicate", ("Mean", "Median"))
-centre_vals = col2.radio("Mean or median for overall statistics", ("Mean", "Median"))
-error_bars = col2.radio("Choose format for error bars", ("SEM", "SD", "95% CI"))
-ylabel = col1.text_input("Label for the Y axis")
-cmap = col1.text_input("Choose a colour map for the replicates", "Set2")
-ylims = col1.text_input("Min and max limits for Y axis", "None")
-bw = col1.text_input("BW value for smoothing the outlines (decimal between 0 and 1, or None)", "None")
-
-paired = col2.radio("Paired data", ("Yes", "No"))
-stats_on_plot = col2.radio("Show statistics on plot (only works for 2 conditions)",
-                           ("Yes", "No"))
-dpi = col1.text_input("DPI for saving the Violin SuperPlot", "1200")
-save_format = col2.radio("Figure save format", ("svg", "png"))
-
+# get user data file
 uploaded_file = st.file_uploader("Upload a CSV or Excel file")
+
+# optional settings
+st.markdown("**Optional settings (can be edited at any time)**")
+col3,col4 = st.beta_columns(2)
+
+order = col3.text_input("Order of the variables as they should appear on the X axis\nseparated by a comma and a single space",
+                        "None")
+xlabel = col3.text_input("Label for the X axis")
+ylabel = col3.text_input("Label for the Y axis")
+cmap = col3.text_input("Choose a colour map for the replicates", "Set2")
+ylims = col3.text_input("Min and max limits for Y axis", "None")
+bw = col3.text_input("BW value for smoothing the outlines (decimal between 0 and 1, or None)", "None")
+dpi = col3.text_input("DPI for saving the Violin SuperPlot", "1200")
+mid_vals = col4.radio("Mean or median per replicate", ("Mean", "Median"))
+centre_vals = col4.radio("Mean or median for overall statistics", ("Mean", "Median"))
+error_bars = col4.radio("Choose format for error bars", ("SEM", "SD", "95% CI"))
+paired = col4.radio("Paired data", ("Yes", "No"))
+stats_on_plot = col4.radio("Show statistics on plot (only works for 2 conditions)",
+                           ("Yes", "No"))
+save_format = col4.radio("Figure save format", ("svg", "png"))
 
 # process logic to make superviolin
 if uploaded_file is not None:
@@ -113,6 +122,6 @@ if uploaded_file is not None:
             b64 = base64.b64encode(data).decode()
         ref = f'<a href="data:application/octet-stream;base64,{b64}" download={fname}>Download Violin SuperPlot</a>'
         return ref
+    
     st.markdown(download(), unsafe_allow_html=True)
-
-    st.markdown("Please cite our publication if you use a Violin SuperPlot in your work. Issues can be reported to Martin on [Twitter](https://twitter.com/MartinPlatelet) via direct message")
+    st.markdown("__Please cite our editorial if you use a Violin SuperPlot in your work__")
