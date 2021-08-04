@@ -16,6 +16,12 @@ from superviolin.plot import Superviolin
 st.set_page_config(page_title="Violin SuperPlot Web App", page_icon="violin")
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
+# hide menu from app users
+st.markdown(""" <style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+</style> """, unsafe_allow_html=True)
+
 st.title("Official Violin SuperPlot Web App")
 st.markdown("""
         This web app uses the _Superviolin_ Python package created as part of 
@@ -24,7 +30,9 @@ st.markdown("""
         resulting plot in SVG or PNG format.
 
         This web app works similarly to the Python package and uses input similar to those described in section 3 of the [**documentation**](https://github.com/kynnemall/superviolin/blob/master/documentation.pdf).
-        Please specify the columns in your data, the file format, and whether your data is in the tidy format or not, before uploading your data.
+        Please specify the file format 
+        ([tidy](https://github.com/kynnemall/superviolin/blob/master/web_app/tidy_example.png) or [untidy](https://github.com/kynnemall/superviolin/blob/master/web_app/untidy_example.png)), 
+        the columns in your data, and whether your data is in the tidy format or not, before uploading your data.
         **If your data is in the untidy format, please provide column names so the app can process your data.**
         Any adjustments you make to the settings will be applied automatically.
         
