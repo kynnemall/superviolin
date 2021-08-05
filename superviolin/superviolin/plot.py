@@ -573,7 +573,7 @@ class Superviolin:
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
         plt.tight_layout()
-        if ylimits != "None" and show_stats != "yes":
+        if ylimits != "None":
             lims = (float(i) for i in ylimits.split(", "))
             plt.ylim(lims)
         

@@ -105,8 +105,8 @@ if uploaded_file is not None:
                        xlabel=xlabel, middle_vals=mid_vals.lower(),
                        error_bars=error_bars, ylabel=ylabel, bw=bw,
                        stats_on_plot=stats_on_plot.lower(), dpi=int(dpi),
-                       paired_data=paired.lower(), return_stats=show_stats,
-                       cmap=cmap, order=order)
+                       paired_data=paired.lower(), return_stats=True,
+                       cmap=cmap, order=order, ylimits=ylims)
     p, info = plot.generate_plot()
     plt.savefig(f"ViolinSuperPlot.{save_format}", dpi=int(dpi))
     st.pyplot()
