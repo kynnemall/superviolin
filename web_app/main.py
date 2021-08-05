@@ -31,12 +31,12 @@ st.markdown("""
 
         This web app works similarly to the Python package and uses input similar to those described in section 3 of the [**documentation**](https://github.com/kynnemall/superviolin/blob/master/documentation.pdf).
         Please specify the file format 
-        ([tidy](https://github.com/kynnemall/superviolin/blob/master/web_app/tidy_example.png) or [untidy](https://github.com/kynnemall/superviolin/blob/master/web_app/untidy_example.png)), 
+        ([**tidy**](https://github.com/kynnemall/superviolin/blob/master/web_app/tidy_example.png) or [**untidy**](https://github.com/kynnemall/superviolin/blob/master/web_app/untidy_example.png)), 
         the columns in your data, and whether your data is in the tidy format or not, before uploading your data.
         **If your data is in the untidy format, please provide column names so the app can process your data.**
         Any adjustments you make to the settings will be applied automatically.
         
-        Issues can be reported to Martin on [Twitter](https://twitter.com/MartinPlatelet) via direct message
+        Issues can be reported to Martin on [**Twitter**](https://twitter.com/MartinPlatelet) via direct message
         """)
 st.markdown("**Required settings (must be specified before uploading data)**")
 
@@ -56,17 +56,18 @@ uploaded_file = st.file_uploader("Upload a CSV or Excel file")
 st.markdown("**Optional settings (can be edited at any time)**")
 col3,col4 = st.beta_columns(2)
 
-order = col3.text_input("Order of the variables as they should appear on the X axis\nseparated by a comma and a single space",
+order = col3.text_input("Order of the variables as they should appear on the X axis, separated by a comma and a single space",
                         "None")
 xlabel = col3.text_input("Label for the X axis")
 ylabel = col3.text_input("Label for the Y axis")
 cmap = col3.text_input("Choose a colour map for the replicates", "Set2")
-ylims = col3.text_input("Min and max limits for Y axis", "None")
+ylims = col3.text_input("Min and max limits for Y axis, separated by a comma and a single space", "None")
 bw = col3.text_input("BW value for smoothing the outlines (decimal between 0 and 1, or None)", "None")
 dpi = col3.text_input("DPI for saving the Violin SuperPlot", "1200")
 mid_vals = col4.radio("Mean or median per replicate", ("Mean", "Median"))
 centre_vals = col4.radio("Mean or median for overall statistics", ("Mean", "Median"))
 error_bars = col4.radio("Choose format for error bars", ("SEM", "SD", "95% CI"))
+col4.markdown("[**More colourmap options**](https://matplotlib.org/stable/gallery/color/colormap_reference.html)")
 paired = col4.radio("Paired data", ("Yes", "No"))
 stats_on_plot = col4.radio("Show statistics on plot (only works for 2 conditions)",
                            ("Yes", "No"))
@@ -128,7 +129,7 @@ if uploaded_file is not None:
         with open(f"ViolinSuperPlot.{save_format}", "rb") as f:
             data = f.read()
             b64 = base64.b64encode(data).decode()
-        ref = f'<a href="data:application/octet-stream;base64,{b64}" download={fname}>Download Violin SuperPlot</a>'
+        ref = f'<a href="data:application/octet-stream;base64,{b64}" download={fname}>**Download Violin SuperPlot**</a>'
         return ref
     
     st.markdown(download(), unsafe_allow_html=True)
