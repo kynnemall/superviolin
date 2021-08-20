@@ -418,7 +418,7 @@ class Superviolin:
         # Temporary fix; find original source of the
         # bug and correct when time allows
         if outline_x[0] != outline_x[-1]:
-            xval = round(outline_x[0])
+            xval = round(outline_x[0], 4)
             yval = outline_y[0]
             outline_x = np.insert(outline_x, 0, xval)
             outline_x = np.insert(outline_x, outline_x.size, xval)
@@ -637,6 +637,7 @@ class Superviolin:
         data = [list(means[means[self.x] == i][self.y]) for i in means[self.x].unique()]
         
         num_groups = len(self.subgroups)
+        posthoc = ""
         
         if num_groups > 2 and len(self.unique_reps) > 1:
             # compute one-way ANOVA test results
