@@ -5,7 +5,6 @@ Created on Thu Dec 17 14:51:42 2020
 @author: Martin Kenny
 """
 
-import os
 import numpy as np
 import pandas as pd
 import scikit_posthocs as sp
@@ -639,7 +638,7 @@ class Superviolin:
         
         num_groups = len(self.subgroups)
         
-        if num_groups > 2:
+        if num_groups > 2 and len(self.unique_reps) > 1:
             # compute one-way ANOVA test results
             stat, p = f_oneway(*data)
             
@@ -669,6 +668,10 @@ class Superviolin:
                 else:
                     print(f"Paired t-test P-value: {p:.3f}")
                     
+        else:
+            stat = "Can't run statistics for only 1 replicate"
+            p = stat
+            print(p)
         # plot statistics if only 2 or 3 groups
         if on_plot == "yes" and num_groups in [2, 3]:
             ax = plt.gca()

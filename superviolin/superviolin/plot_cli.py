@@ -38,14 +38,15 @@ def process_txt(txt):
     lines = [i.rstrip() for i in txt if not i.startswith("#")]
     lines = [i for i in lines if len(i) > 0]
     for l in lines:
-        k, v = l.replace("\n", "").split(": ")
-        try:
-            arg_dict[k] = float(v)
-        except ValueError:
-            if k == "None":
-                arg_dict[k] = None
-            else:
-                arg_dict[k] = v
+        if ":" in l:
+            k, v = l.replace("\n", "").split(": ")
+            try:
+                arg_dict[k] = float(v)
+            except ValueError:
+                if k == "None":
+                    arg_dict[k] = None
+                else:
+                    arg_dict[k] = v
     return arg_dict
 
 def get_args(demonstration=False, preferences=False):
