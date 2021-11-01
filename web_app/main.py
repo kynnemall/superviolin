@@ -11,22 +11,24 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from datetime import datetime
 from superviolin.plot import Superviolin
+from matplotlib import rcParams as params
 
-st.set_page_config(page_title="Violin SuperPlot Web App", page_icon="violin",
+st.set_page_config(page_title="Violin SuperPlot Web App",
+                   page_icon="violin",
                    layout="wide")
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # hide menu from app users
-# st.markdown(""" <style>
-# #MainMenu {visibility: hidden;}
-# footer {visibility: hidden;}
-# </style> """, unsafe_allow_html=True)
+st.markdown(""" <style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+</style> """, unsafe_allow_html=True)
 
 st.title("Official Violin SuperPlot Web App")
 st.markdown("""
         <p style='text-align: justify'>This web app uses the Superviolin Python package created as part of 
         the editorial <a href='https://www.molbiolcell.org/doi/10.1091/mbc.E21-03-0130'><strong>Violin SuperPlots: Visualizing heterogeneity in large datasets</strong></a> 
-        to generate Violin SuperPlots from user-supplied data, customize as you like, and download them
+        to generate Violin SuperPlots from user-supplied data. Upload your data, customize as you like, and download your Violin SuperPlots
         in SVG or PNG format.<br>
         This web app works similarly to the Python package and uses input similar to those described in section 3 of the <a href='https://github.com/kynnemall/superviolin/blob/master/documentation.pdf'><strong>documentation</strong></a>.
         Please specify:
@@ -35,7 +37,7 @@ st.markdown("""
         <li>the columns in your data</li><li>and whether your data is in the tidy format or not. 
         <em>If your data is in the untidy format, please provide column names so the app can process your data.</em></li>
         Any adjustments you make to the settings will be applied automatically. 
-        Issues can be reported to Martin on <a href='(https://twitter.com/MartinPlatele'>Twitter</a> via direct message
+        Issues can be reported to Martin on <a href='(https://twitter.com/MartinPlatelet'>Twitter</a> via direct message
         </p>""", unsafe_allow_html=True)
         
         
@@ -52,7 +54,7 @@ with st.sidebar.expander("Required input"):
     uploaded_file = st.file_uploader("Upload a CSV or Excel file")
 
 # optional settings
-with st.sidebar.expander("Violin SuperPlot formatting (edit at any time)"):
+with st.sidebar.expander("Violin SuperPlot formatting"):
     order = st.text_input("Order of variables as they appear on the X axis (separate by comma and whitespace)",
                             "None")
     xlabel = st.text_input("Label for the X axis")
@@ -70,7 +72,26 @@ with st.sidebar.expander("Violin SuperPlot formatting (edit at any time)"):
                                ("Yes", "No"))
     
 with st.sidebar.expander("General plot formatting"):
-    pass
+    violin_width = st.slider("Violin width", min_value=0.5,
+                               max_value=1., value=0.8, step=0.05)
+    violin_sep_lw = st.slider("Violin separating line width", min_value=0.1,
+                               max_value=1.5, value=0.5, step=0.1)
+    xtick_lbl_size = st.slider("X tick label size", min_value=0,
+                               max_value=20, value=8, step=1)
+    ytick_lbl_size = st.slider("Y tick label size", min_value=0,
+                               max_value=20, value=8, step=1)
+    axes_lbl_size = st.slider("Axes label size", min_value=0,
+                               max_value=20, value=9, step=1)
+    axes_lw = st.slider("Axes line width", min_value=0.2,
+                               max_value=2., value=0.8, step=0.2)
+    params["xtick.labelsize"] = xtick_lbl_size
+    params["ytick.labelsize"] = ytick_lbl_size
+    params["axes.labelsize"] = axes_lbl_size
+    params["axes.linewidth"] = axes_lw
+    params["xtick.minor.width"] = axes_lw / 2
+    params["ytick.minor.width"] = axes_lw / 2
+    params["xtick.major.width"] = axes_lw
+    params["ytick.major.width"] = axes_lw
 
 # process logic to make superviolin
 if uploaded_file is not None:
@@ -106,11 +127,12 @@ if uploaded_file is not None:
                        error_bars=error_bars, ylabel=ylabel, bw=bw,
                        stats_on_plot=stats_on_plot.lower(), dpi=int(dpi),
                        paired_data=paired.lower(), return_stats=True,
-                       cmap=cmap, order=order, ylimits=ylims)
+                       cmap=cmap, order=order, ylimits=ylims,
+                       sep_linewidth=violin_sep_lw, total_width=violin_width)
     p, info = plot.generate_plot()
     plt.savefig("ViolinSuperPlot.png", dpi=int(dpi))
     plt.savefig("ViolinSuperPlot.svg", dpi=int(dpi))
-    st.pyplot()
+    st.image("ViolinSuperPlot.png", caption="Your Violin SuperPlot")
     
     # show statistics
     if len(plot.subgroups) == 2:
@@ -123,9 +145,11 @@ if uploaded_file is not None:
         st.table(info)
     
     # st.markdown("__Please cite our editorial if you use a Violin SuperPlot in your work__")
+    col1, col2 = st.sidebar.columns(2)
     with open("ViolinSuperPlot.svg", "rb") as f:
         fname = datetime.now().strftime("%Y%m%d_%H-%M-%S_ViolinSuperPlot.svg")
-        st.download_button("Download SVG", data=f, file_name=fname)
+        col1.download_button("Download SVG", data=f, file_name=fname)
     with open("ViolinSuperPlot.png", "rb") as f:
         fname = datetime.now().strftime("%Y%m%d_%H-%M-%S_ViolinSuperPlot.png")
-        st.download_button("Download PNG", data=f, file_name=fname)
+        col2.download_button("Download PNG", data=f, file_name=fname)
+    st.sidebar.markdown("**Please cite the editorial if using this web app to generate figures for your publications**")
