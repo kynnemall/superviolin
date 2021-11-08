@@ -92,7 +92,15 @@ with st.sidebar.expander("General plot formatting"):
     params["ytick.minor.width"] = axes_lw / 2
     params["xtick.major.width"] = axes_lw
     params["ytick.major.width"] = axes_lw
-
+    
+with st.sidebar.expander("Filter data"):
+    filter_col1 = st.text_input("Column to use for numeric filtering")
+    min1 = st.number_input("Min")
+    max1 = st.number_input("Max")
+    
+    filter_col2 = st.text_input("Column to use for group filtering")
+    groups = st.text_input("Enter group names separated by comma and space")
+    
 # process logic to make superviolin
 if uploaded_file is not None:
     if suffix == "CSV":
@@ -114,6 +122,18 @@ if uploaded_file is not None:
                 df[replicate] = s
                 dfs.append(df)
         df = pd.concat(dfs)
+    
+    if filter_col1 != "" and filter_col1 in df.columns:
+        if min1 > df[filter_col1].max():
+            min1 = df[filter_col1].min()
+        if max1 < df[filter_col1].min():
+            max1 = df[filter_col1].max()
+        df = df.query(f"{min1} <= {filter_col1} <= {max1}")
+    
+    if filter_col2 != "" and filter_col2 in df.columns:
+        groups = groups.split(", ")
+        df[filter_col2] = df[filter_col2].astype(str)
+        df = df[df[filter_col2].isin(groups)]
         
     if bw != "None":
         bw = float(bw)
