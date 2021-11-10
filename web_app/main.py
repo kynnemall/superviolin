@@ -30,12 +30,16 @@ st.markdown("""
         the editorial <a href='https://www.molbiolcell.org/doi/10.1091/mbc.E21-03-0130'><strong>Violin SuperPlots: Visualizing heterogeneity in large datasets</strong></a> 
         to generate Violin SuperPlots from user-supplied data. Upload your data, customize as you like, and download your Violin SuperPlots
         in SVG or PNG format.<br>
-        This web app works similarly to the Python package and uses input similar to those described in section 3 of the <a href='https://github.com/kynnemall/superviolin/blob/master/documentation.pdf'><strong>documentation</strong></a>.
-        <br>In the required input tab of the sidebar on the left, please specify:
-        <ul><li>The file format 
+        This web app works similarly to the Python package and uses input similar to those described in section 3 of the <a href='https://github.com/kynnemall/superviolin/blob/master/documentation.pdf'><strong>documentation</strong></a> 
+        (Especially useful if you need help with sub/superscript or greek letters (section 6i) in your axis labels).
+        <br><br>In the required input tab of the sidebar on the left, please specify:
+        <ul>
+        <li>The file format ,
         (<a href='https://github.com/kynnemall/superviolin/blob/master/web_app/tidy_example.png'>tidy</a> or <a href='https://github.com/kynnemall/superviolin/blob/master/web_app/untidy_example.png'>untidy</a>)</li>
-        <li>the columns in your data</li><li>and whether your data is in the tidy format or not.</li>
-        <br><em>If your data is in the untidy format, please provide column names so the app can process your data.</em><br>
+        <li>the columns in your data,</li>
+        <li>and whether your data is in the tidy format or not.</li>
+        </ul>
+        <em>If your data is in the untidy format, please provide column names so the app can process your data.</em><br>
         Any adjustments you make to the settings will be applied automatically. 
         Issues can be reported to Martin on <a href='(https://twitter.com/MartinPlatelet'>Twitter</a> via direct message
         </p>""", unsafe_allow_html=True)
