@@ -31,11 +31,11 @@ st.markdown("""
         to generate Violin SuperPlots from user-supplied data. Upload your data, customize as you like, and download your Violin SuperPlots
         in SVG or PNG format.<br>
         This web app works similarly to the Python package and uses input similar to those described in section 3 of the <a href='https://github.com/kynnemall/superviolin/blob/master/documentation.pdf'><strong>documentation</strong></a>.
-        Please specify:
+        <br>In the required input tab of the sidebar on the left, please specify:
         <ul><li>The file format 
-        (<a href='https://github.com/kynnemall/superviolin/blob/master/web_app/tidy_example.png'>tidy</a> or <a href='https://github.com/kynnemall/superviolin/blob/master/web_app/untidy_example.png'>untidy</a>)</li> 
-        <li>the columns in your data</li><li>and whether your data is in the tidy format or not. 
-        <em>If your data is in the untidy format, please provide column names so the app can process your data.</em></li>
+        (<a href='https://github.com/kynnemall/superviolin/blob/master/web_app/tidy_example.png'>tidy</a> or <a href='https://github.com/kynnemall/superviolin/blob/master/web_app/untidy_example.png'>untidy</a>)</li>
+        <li>the columns in your data</li><li>and whether your data is in the tidy format or not.</li>
+        <br><em>If your data is in the untidy format, please provide column names so the app can process your data.</em><br>
         Any adjustments you make to the settings will be applied automatically. 
         Issues can be reported to Martin on <a href='(https://twitter.com/MartinPlatelet'>Twitter</a> via direct message
         </p>""", unsafe_allow_html=True)
@@ -84,6 +84,8 @@ with st.sidebar.expander("General plot formatting"):
                                max_value=20, value=9, step=1)
     axes_lw = st.slider("Axes line width", min_value=0.2,
                                max_value=2., value=0.8, step=0.2)
+    rotate_xticks = st.slider("X-tick rotation", value=0, min_value=0,
+                              max_value=90, step=5)
     params["xtick.labelsize"] = xtick_lbl_size
     params["ytick.labelsize"] = ytick_lbl_size
     params["axes.labelsize"] = axes_lbl_size
@@ -93,13 +95,23 @@ with st.sidebar.expander("General plot formatting"):
     params["xtick.major.width"] = axes_lw
     params["ytick.major.width"] = axes_lw
     
-with st.sidebar.expander("Filter data"):
+with st.sidebar.expander("Filter data (1st condition)"):
     filter_col1 = st.text_input("Column to use for numeric filtering")
     min1 = st.number_input("Min")
     max1 = st.number_input("Max")
     
     filter_col2 = st.text_input("Column to use for group filtering")
-    groups = st.text_input("Enter group names separated by comma and space")
+    groups2 = st.text_input("Enter group names separated by comma and space")
+    
+with st.sidebar.expander("Filter data (2nd condition)"):
+    filter_col3 = st.text_input("Column to use for numeric filtering",
+                                key="2nd")
+    min3 = st.number_input("Min", key="2nd")
+    max3 = st.number_input("Max", key="2nd")
+    
+    filter_col4 = st.text_input("Column to use for group filtering", key="2nd")
+    groups4 = st.text_input("Enter group names separated by comma and space",
+                            key="2nd")
     
 # process logic to make superviolin
 if uploaded_file is not None:
@@ -131,9 +143,21 @@ if uploaded_file is not None:
         df = df.query(f"{min1} <= {filter_col1} <= {max1}")
     
     if filter_col2 != "" and filter_col2 in df.columns:
-        groups = groups.split(", ")
+        groups2 = groups2.split(", ")
         df[filter_col2] = df[filter_col2].astype(str)
-        df = df[df[filter_col2].isin(groups)]
+        df = df[df[filter_col2].isin(groups2)]
+        
+    if filter_col3 != "" and filter_col3 in df.columns:
+        if min3 > df[filter_col3].max():
+            min3 = df[filter_col3].min()
+        if max3 < df[filter_col3].min():
+            max3 = df[filter_col3].max()
+        df = df.query(f"{min3} <= {filter_col3} <= {max3}")
+    
+    if filter_col4 != "" and filter_col4 in df.columns:
+        groups4 = groups4.split(", ")
+        df[filter_col4] = df[filter_col4].astype(str)
+        df = df[df[filter_col4].isin(groups4)]
         
     if bw != "None":
         bw = float(bw)
@@ -150,9 +174,19 @@ if uploaded_file is not None:
                        cmap=cmap, order=order, ylimits=ylims,
                        sep_linewidth=violin_sep_lw, total_width=violin_width)
     p, info = plot.generate_plot()
+    plt.xticks(rotation=rotate_xticks)
     plt.savefig("ViolinSuperPlot.png", dpi=int(dpi))
     plt.savefig("ViolinSuperPlot.svg", dpi=int(dpi))
-    st.image("ViolinSuperPlot.png", caption="Your Violin SuperPlot")
+    st.image("ViolinSuperPlot.png", caption="Your Violin SuperPlot",
+                 width=600)
+    
+    col1, col2 = st.sidebar.columns(2)
+    with open("ViolinSuperPlot.svg", "rb") as f:
+        fname = datetime.now().strftime("%Y%m%d_%H-%M-%S_ViolinSuperPlot.svg")
+        col1.download_button("Download SVG", data=f, file_name=fname)
+    with open("ViolinSuperPlot.png", "rb") as f:
+        fname = datetime.now().strftime("%Y%m%d_%H-%M-%S_ViolinSuperPlot.png")
+        col2.download_button("Download PNG", data=f, file_name=fname)
     
     # show statistics
     if len(plot.subgroups) == 2:
@@ -161,15 +195,14 @@ if uploaded_file is not None:
         else:
             st.write(f"Unpaired t-test p-value {p:.3f}")
     else:
-        st.write(f"One-way ANOVA p-value {p:.3f}; Table of Tukey posthoc statistics:")
+        st.markdown(f"<p><em>One-way ANOVA p-value <strong>{p:.3f}<strong></em><br><br>Table of Tukey posthoc statistics:</p>",
+                    unsafe_allow_html=True)
         st.table(info)
-    
-    # st.markdown("__Please cite our editorial if you use a Violin SuperPlot in your work__")
-    col1, col2 = st.sidebar.columns(2)
-    with open("ViolinSuperPlot.svg", "rb") as f:
-        fname = datetime.now().strftime("%Y%m%d_%H-%M-%S_ViolinSuperPlot.svg")
-        col1.download_button("Download SVG", data=f, file_name=fname)
-    with open("ViolinSuperPlot.png", "rb") as f:
-        fname = datetime.now().strftime("%Y%m%d_%H-%M-%S_ViolinSuperPlot.png")
-        col2.download_button("Download PNG", data=f, file_name=fname)
+        fname = f"posthoc_statistics_{value}.txt"
+        try:
+            with open(fname, "rb") as f:
+                st.sidebar.download_button("Download posthoc statistics",
+                                           data=f, file_name=fname)
+        except:
+            pass
     st.sidebar.markdown("**Please cite the editorial if using this web app to generate figures for your publications**")
