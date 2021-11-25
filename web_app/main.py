@@ -34,8 +34,8 @@ st.markdown("""
         (Especially useful if you need help with sub/superscript or greek letters (section 6i) in your axis labels).
         <br><br>In the required input tab of the sidebar on the left, please specify:
         <ul>
-        <li>The file format ,
-        (<a href='https://github.com/kynnemall/superviolin/blob/master/web_app/tidy_example.png'>tidy</a> or <a href='https://github.com/kynnemall/superviolin/blob/master/web_app/untidy_example.png'>untidy</a>)</li>
+        <li>The file format
+        (<a href='https://github.com/kynnemall/superviolin/blob/master/web_app/tidy_example.png'>tidy</a> or <a href='https://github.com/kynnemall/superviolin/blob/master/web_app/untidy_example.png'>untidy</a>),</li>
         <li>the columns in your data,</li>
         <li>and whether your data is in the tidy format or not.</li>
         </ul>
@@ -64,13 +64,13 @@ with st.sidebar.expander("Violin SuperPlot formatting"):
     xlabel = st.text_input("Label for the X axis")
     ylabel = st.text_input("Label for the Y axis")
     cmap = st.text_input("Choose a colour map for the replicates", "Set2")
+    st.markdown("[**More colourmap options**](https://matplotlib.org/stable/gallery/color/colormap_reference.html)")
     ylims = st.text_input("Min and max limits for Y axis (separate by comma and whitespace)", "None")
     bw = st.text_input("BW value for smoothing the outlines (decimal between 0 and 1, or None)", "None")
     dpi = st.text_input("DPI for saving the Violin SuperPlot", "1200")
     mid_vals = st.radio("Mean or median per replicate", ("Mean", "Median"))
     centre_vals = st.radio("Mean or median for overall statistics", ("Mean", "Median"))
     error_bars = st.radio("Choose format for error bars", ("SEM", "SD", "95% CI"))
-    st.markdown("[**More colourmap options**](https://matplotlib.org/stable/gallery/color/colormap_reference.html)")
     paired = st.radio("Paired data", ("Yes", "No"))
     stats_on_plot = st.radio("Show statistics on plot (only works for 2 conditions)",
                                ("Yes", "No"))
