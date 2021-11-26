@@ -650,9 +650,10 @@ class Superviolin:
             
             # round p values to 3 decimal places in posthoc tests
             posthoc = posthoc.round(3)
-            # save statistics to file
-            posthoc.to_csv(f"posthoc_statistics_{self.y}.txt", sep="\t")
-            print("Posthoc statistics saved to txt file")
+            # save statistics to file if they aren't being returned at end of method
+            if not return_:
+                posthoc.to_csv(f"posthoc_statistics_{self.y}.txt", sep="\t")
+                print("Posthoc statistics saved to txt file")
         elif num_groups == 2:
             if paired == "no":
                 # independent t-test
