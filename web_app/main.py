@@ -35,13 +35,13 @@ st.markdown("""
         <br><br>In the required input tab of the sidebar on the left, please specify:
         <ul>
         <li>The file format
-        (<a href='https://github.com/kynnemall/superviolin/blob/master/web_app/tidy_example.png'>tidy</a> or <a href='https://github.com/kynnemall/superviolin/blob/master/web_app/untidy_example.png'>untidy</a>),</li>
+        (<a href='https://github.com/kynnemall/superviolin/blob/master/web_app/tidy_example.png'  target="_blank" rel="noopener noreferrer">tidy</a> or <a href='https://github.com/kynnemall/superviolin/blob/master/web_app/untidy_example.png'  target="_blank" rel="noopener noreferrer">untidy</a>),</li>
         <li>the columns in your data,</li>
         <li>and whether your data is in the tidy format or not.</li>
         </ul>
         <em>If your data is in the untidy format, please provide column names so the app can process your data.</em><br>
         Any adjustments you make to the settings will be applied automatically. 
-        Issues can be reported to Martin on <a href='(https://twitter.com/MartinPlatelet'>Twitter</a> via direct message
+        Issues can be reported to Martin on <a href='(https://twitter.com/MartinPlatelet' target="_blank" rel="noopener noreferrer">Twitter</a> via direct message
         </p>""", unsafe_allow_html=True)
         
         
@@ -65,8 +65,15 @@ with st.sidebar.expander("Violin SuperPlot formatting"):
     ylabel = st.text_input("Label for the Y axis")
     cmap = st.text_input("Choose a colour map for the replicates", "Set2")
     st.markdown("[**More colourmap options**](https://matplotlib.org/stable/gallery/color/colormap_reference.html)")
+    
+    min_y = 0
+    max_y = 1
+    step = max_y / 200
+    values = (0, 1)
     ylims = st.text_input("Min and max limits for Y axis (separate by comma and whitespace)", "None")
-    bw = st.text_input("BW value for smoothing the outlines (decimal between 0 and 1, or None)", "None")
+    
+    bw = st.slider("BW value for smoothing the outlines", min_value=0.5,
+                               max_value=1., value=0., step=0.05)
     dpi = st.text_input("DPI for saving the Violin SuperPlot", "1200")
     mid_vals = st.radio("Mean or median per replicate", ("Mean", "Median"))
     centre_vals = st.radio("Mean or median for overall statistics", ("Mean", "Median"))
@@ -163,8 +170,8 @@ if uploaded_file is not None:
         df[filter_col4] = df[filter_col4].astype(str)
         df = df[df[filter_col4].isin(groups4)]
         
-    if bw != "None":
-        bw = float(bw)
+    if bw == 0:
+        bw = "None"
     if stats_on_plot == "Yes":
         show_stats = True
     else:
