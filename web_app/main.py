@@ -147,9 +147,9 @@ if uploaded_file is not None:
         df = pd.concat(dfs)
     
     if filter_col1 != "" and filter_col1 in df.columns:
-        if min1 > df[filter_col1].max():
+        if min1 > df[filter_col1].max() or min1 < df[filter_col1].min():
             min1 = df[filter_col1].min()
-        if max1 < df[filter_col1].min():
+        if max1 < df[filter_col1].min()  or max1 > df[filter_col1].max():
             max1 = df[filter_col1].max()
         df = df.query(f"{min1} <= {filter_col1} <= {max1}")
     
@@ -159,9 +159,9 @@ if uploaded_file is not None:
         df = df[df[filter_col2].isin(groups2)]
         
     if filter_col3 != "" and filter_col3 in df.columns:
-        if min3 > df[filter_col3].max():
+        if min3 > df[filter_col3].max() or min3 < df[filter_col3].min():
             min3 = df[filter_col3].min()
-        if max3 < df[filter_col3].min():
+        if max3 < df[filter_col3].min() or max3 > df[filter_col3].max():
             max3 = df[filter_col3].max()
         df = df.query(f"{min3} <= {filter_col3} <= {max3}")
     
