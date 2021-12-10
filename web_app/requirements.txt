@@ -1,3 +1,2 @@
-scipy==1.6.2
 superviolin==1.0.6
 streamlit==1.1
