@@ -184,7 +184,11 @@ if uploaded_file is not None:
                        paired_data=paired.lower(), return_stats=True,
                        cmap=cmap, order=order, ylimits=ylims,
                        sep_linewidth=violin_sep_lw, total_width=violin_width)
-    p, info = plot.generate_plot()
+    plot.get_kde_data(plot.bw)
+    plot.plot_subgroups(plot.centre_val, plot.middle_vals,
+                        plot.error_bars, plot.ylimits,
+                        plot.total_width, plot.linewidth,
+                        plot.stats_on_plot, plot.show_legend)
     plt.xticks(rotation=rotate_xticks)
     plt.savefig("ViolinSuperPlot.png", dpi=int(dpi))
     plt.savefig("ViolinSuperPlot.svg", dpi=int(dpi))
@@ -200,20 +204,26 @@ if uploaded_file is not None:
         col2.download_button("Download PNG", data=f, file_name=fname)
     
     # show statistics
-    if len(plot.subgroups) == 2:
-        if paired == "yes":
-            st.write(f"Paired t-test p-value {p:.3f}")
+    try:
+        p, info = plot.get_statistics(plot.centre_val, plot.paired,
+                                      plot.stats_on_plot, plot.ylimits,
+                                      plot.return_stats)
+        if len(plot.subgroups) == 2:
+            if paired == "yes":
+                st.write(f"Paired t-test p-value {p:.3f}")
+            else:
+                st.write(f"Unpaired t-test p-value {p:.3f}")
         else:
-            st.write(f"Unpaired t-test p-value {p:.3f}")
-    else:
-        st.markdown(f"<p><em>One-way ANOVA p-value <strong>{p:.3f}<strong></em><br><br>Table of Tukey posthoc statistics:</p>",
-                    unsafe_allow_html=True)
-        st.table(info)
-        fname = f"posthoc_statistics_{value}.txt"
-        try:
-            with open(fname, "rb") as f:
-                st.sidebar.download_button("Download posthoc statistics",
-                                           data=f, file_name=fname)
-        except:
-            pass
+            st.markdown(f"<p><em>One-way ANOVA p-value <strong>{p:.3f}<strong></em><br><br>Table of Tukey posthoc statistics:</p>",
+                        unsafe_allow_html=True)
+            st.table(info)
+            fname = f"posthoc_statistics_{value}.txt"
+            try:
+                with open(fname, "rb") as f:
+                    st.sidebar.download_button("Download posthoc statistics",
+                                               data=f, file_name=fname)
+            except:
+                pass
+    except:
+        st.write("Error calculating statistics")
     st.sidebar.markdown("**Please cite the editorial if using this web app to generate figures for your publications**")
