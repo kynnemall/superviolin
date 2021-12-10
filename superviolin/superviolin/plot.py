@@ -714,7 +714,9 @@ class Superviolin:
         
         if return_:
             if num_groups == 2:
+                print(p, paired)
                 return p, paired
             else:
+                print(p, posthoc)
                 return p, posthoc
             
