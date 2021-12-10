@@ -26,7 +26,7 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 
 st.title("Official Violin SuperPlot Web App")
 import numpy as np
-st.write("Numpy version: {np.__Version__}")
+st.write(f"Numpy version: {np.__Version__}")
 st.markdown("""
         <p style='text-align: justify'>This web app uses the Superviolin Python package created as part of 
         the editorial <a href='https://www.molbiolcell.org/doi/10.1091/mbc.E21-03-0130'><strong>Violin SuperPlots: Visualizing heterogeneity in large datasets</strong></a> 
