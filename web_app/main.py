@@ -13,7 +13,7 @@ from datetime import datetime
 from superviolin.plot import Superviolin
 from matplotlib import rcParams as params
 import scipy
-print(scipy.__version__)
+st.write(scipy.__version__)
 
 st.set_page_config(page_title="Violin SuperPlot Web App",
                    page_icon="violin",
