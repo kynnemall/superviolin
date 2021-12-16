@@ -5,7 +5,6 @@ Created on Thu Dec 17 14:51:42 2020
 @author: Martin Kenny
 """
 
-import os
 import numpy as np
 import pandas as pd
 import scikit_posthocs as sp
@@ -419,7 +418,7 @@ class Superviolin:
         # Temporary fix; find original source of the
         # bug and correct when time allows
         if outline_x[0] != outline_x[-1]:
-            xval = round(outline_x[0])
+            xval = round(outline_x[0], 4)
             yval = outline_y[0]
             outline_x = np.insert(outline_x, 0, xval)
             outline_x = np.insert(outline_x, outline_x.size, xval)
@@ -669,7 +668,11 @@ class Superviolin:
                     print(f"Paired t-test P-value: {p:.2e}")
                 else:
                     print(f"Paired t-test P-value: {p:.3f}")
-                    
+        else:
+            stat = "Can't run statistics for only 1 replicate"
+            p = stat
+            print(p)
+            
         # plot statistics if only 2 or 3 groups
         if on_plot == "yes" and num_groups in [2, 3]:
             ax = plt.gca()
