@@ -21,8 +21,8 @@ params["figure.dpi"] = 300
 params['legend.fontsize'] = 5
 
 class Superviolin:
-    def __init__(self, filename="", data_format="tidy", condition="condition", 
-                 value="value", replicate="replicate", order="None",
+    def __init__(self, condition="condition", value="value", replicate="replicate",
+                 order="None", filename="", data_format="tidy",
                  centre_val="mean", middle_vals="mean", error_bars="SEM",
                  paired_data="no", stats_on_plot="no", ylimits="None",
                  total_width=0.8, linewidth=1, dataframe=False, dpi=300,
@@ -102,6 +102,21 @@ class Superviolin:
                         np.random.shuffle(self.colours)
                 if len(self.colours) < len(self.unique_reps):
                     self.errors.append("Not enough colours for each replicate")
+        self.check_errors()
+    
+    def check_errors(self):
+        num_errors = len(self.errors)
+        if num_errors == 1:
+            print("Caught 1 error")
+            return True
+        elif num_errors > 1:
+            print(f"Caught {len(self.errors)} errors")
+            for i,e in enumerate(self.errors, 1):
+                print(f"\t{i}. {e}")
+            return True
+        else:
+            return False
+        
                     
     def generate_plot(self):
         """
@@ -114,7 +129,8 @@ class Superviolin:
 
         """
         # if no errors exist, create the superplot. Otherwise, report errors
-        if len(self.errors) == 0:
+        errors = self.check_errors()
+        if not errors:
             self.get_kde_data(self.bw)
             self.plot_subgroups(self.centre_val, self.middle_vals,
                                 self.error_bars, self.ylimits,
@@ -129,13 +145,7 @@ class Superviolin:
                 self.get_statistics(self.centre_val, self.paired,
                                     self.stats_on_plot, self.ylimits,
                                     self.return_stats)
-        else:
-            if len(self.errors) == 1:
-                print("Caught 1 error")
-            else:
-                print(f"Caught {len(self.errors)} errors")
-            for i,e in enumerate(self.errors, 1):
-                print(f"\t{i}. {e}")
+        
                             
     def _make_tidy(self, xl_file):
         """
@@ -166,7 +176,7 @@ class Superviolin:
     
     def _check_df(self, filename, data_format):
         """
-        
+        Read dataframe if file extension is valid. 
 
         Parameters
         ----------
@@ -224,9 +234,9 @@ class Superviolin:
 
     def get_kde_data(self, bw=None):
         """
-        Fit kernel density estimators to each replicate of each condition,
+        Fit kernel density estimators to the replicate of each condition,
         generate list of x and y co-ordinates of the histogram,
-        stack them, and add the data to the subgroup_dict attribute
+        stack them, and add to the subgroup_dict attribute
 
         Parameters
         ----------
@@ -459,8 +469,9 @@ class Superviolin:
                             zorder=10, marker="o", s=scatter_size)
         plt.plot(outline_x, outline_y, color="Black", linewidth=linewidth)
         
-    def plot_subgroups(self, centre_val, middle_vals, error_bars, ylimits,
-                       total_width, linewidth, show_stats, show_legend):
+    def plot_subgroups(self, centre_val="mean", middle_vals="mean", error_bars="SEM",
+                       ylimits="None", total_width=0.8, linewidth=1,
+                       show_stats="no", show_legend="no"):
         """
         Plot all subgroups of the df attribute
 
