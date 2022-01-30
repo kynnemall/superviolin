@@ -63,7 +63,10 @@ with st.sidebar.expander("Violin SuperPlot formatting"):
                             "None")
     xlabel = st.text_input("Label for the X axis")
     ylabel = st.text_input("Label for the Y axis")
-    cmap = st.text_input("Choose a colour map for the replicates", "Set2")
+    cmap = st.selectbox("Choose a colour map for the replicates",
+                        ("Pastel1", "Pastel2", "Paired", "Accent", "Dark2",
+                        "Set1", "Set2", "Set3", "tab10", "tab20", "tab20b",
+                        "tab20c"))
     st.markdown("[**More colourmap options**](https://matplotlib.org/stable/gallery/color/colormap_reference.html)")
     
     min_y = 0
