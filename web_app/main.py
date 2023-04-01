@@ -9,7 +9,6 @@ Created on Sat Jul 24 16:21:59 2021
 import re
 import scipy
 import requests
-import requests_random_user_agent
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
