@@ -6,13 +6,18 @@ Created on Sat Jul 24 16:21:59 2021
 @author: martin
 """
 
+import re
+import scipy
+import requests
+import requests_random_user_agent
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
+from bs4 import BeautifulSoup
 from datetime import datetime
 from superviolin.plot import Superviolin
 from matplotlib import rcParams as params
-import scipy
+from streamlit_extras.dataframe_explorer import dataframe_explorer
 st.set_page_config(page_title="Violin SuperPlot Web App",
                    page_icon="violin",
                    layout="wide")
@@ -25,6 +30,7 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 # </style> """, unsafe_allow_html=True)
 
 st.title("Official Violin SuperPlot Web App")
+
 st.markdown("""
         <p style='text-align: justify'>This web app uses the Superviolin Python package created as part of 
         the editorial <a href='https://www.molbiolcell.org/doi/10.1091/mbc.E21-03-0130'><strong>Violin SuperPlots: Visualizing heterogeneity in large datasets</strong></a> 
@@ -108,24 +114,11 @@ with st.sidebar.expander("General plot formatting"):
     params["ytick.minor.width"] = axes_lw / 2
     params["xtick.major.width"] = axes_lw
     params["ytick.major.width"] = axes_lw
-    
-with st.sidebar.expander("Filter data (1st condition)"):
-    filter_col1 = st.text_input("Column to use for numeric filtering")
-    min1 = st.number_input("Min")
-    max1 = st.number_input("Max")
-    
-    filter_col2 = st.text_input("Column to use for group filtering")
-    groups2 = st.text_input("Enter group names separated by comma and space")
-    
-with st.sidebar.expander("Filter data (2nd condition)"):
-    filter_col3 = st.text_input("Column to use for numeric filtering",
-                                key="2nd")
-    min3 = st.number_input("Min", key="2nd")
-    max3 = st.number_input("Max", key="2nd")
-    
-    filter_col4 = st.text_input("Column to use for group filtering", key="2nd")
-    groups4 = st.text_input("Enter group names separated by comma and space",
-                            key="2nd")
+
+# include publication stats
+with st.sidebar:
+    st.markdown('Dimensions')
+    st.components.v1.html('<span class="__dimensions_badge_embed__" data-doi="10.1091/mbc.e21-03-0130" data-legend="never"></span><script async src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script>')
     
 # process logic to make superviolin
 if uploaded_file is not None:
@@ -148,38 +141,19 @@ if uploaded_file is not None:
                 df[replicate] = s
                 dfs.append(df)
         df = pd.concat(dfs)
+
+    with st.expander('Filter data (optional)'):
+        st.markdown('<ul><li>Select a column from the selectbox below</li><li>If the variable is numeric, choose the upper and lower limits</li><li>If the variable is categorical, choose categories to keep</li></ul>',
+                    unsafe_allow_html=True)
+        fdf = dataframe_explorer(df)
     
-    if filter_col1 != "" and filter_col1 in df.columns:
-        if min1 > df[filter_col1].max() or min1 < df[filter_col1].min():
-            min1 = df[filter_col1].min()
-        if max1 < df[filter_col1].min()  or max1 > df[filter_col1].max():
-            max1 = df[filter_col1].max()
-        df = df.query(f"{min1} <= {filter_col1} <= {max1}")
-    
-    if filter_col2 != "" and filter_col2 in df.columns:
-        groups2 = groups2.split(", ")
-        df[filter_col2] = df[filter_col2].astype(str)
-        df = df[df[filter_col2].isin(groups2)]
-        
-    if filter_col3 != "" and filter_col3 in df.columns:
-        if min3 > df[filter_col3].max() or min3 < df[filter_col3].min():
-            min3 = df[filter_col3].min()
-        if max3 < df[filter_col3].min() or max3 > df[filter_col3].max():
-            max3 = df[filter_col3].max()
-        df = df.query(f"{min3} <= {filter_col3} <= {max3}")
-    
-    if filter_col4 != "" and filter_col4 in df.columns:
-        groups4 = groups4.split(", ")
-        df[filter_col4] = df[filter_col4].astype(str)
-        df = df[df[filter_col4].isin(groups4)]
-        
     if bw == 0:
         bw = "None"
     if stats_on_plot == "Yes":
         show_stats = True
     else:
         show_stats = False
-    plot = Superviolin(dataframe=df, condition=condition, value=value,
+    plot = Superviolin(dataframe=fdf, condition=condition, value=value,
                        replicate=replicate, centre_val=centre_vals.lower(),
                        xlabel=xlabel, middle_vals=mid_vals.lower(),
                        error_bars=error_bars, ylabel=ylabel, bw=bw,
