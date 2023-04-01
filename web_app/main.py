@@ -21,37 +21,24 @@ st.set_page_config(page_title="Violin SuperPlot Web App",
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # hide menu from app users
-# st.markdown(""" <style>
-# #MainMenu {visibility: hidden;}
-# footer {visibility: hidden;}
-# </style> """, unsafe_allow_html=True)
+st.markdown(""" <style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+</style> """, unsafe_allow_html=True)
 
-st.title("Official Violin SuperPlot Web App")
+st.markdown("""<div style="padding: 20px; border-radius: 5px;">
+  <h2 style="font-size: 36px; color: #333; margin-bottom: 10px;">Visualize large datasets with ease using our web app!</h2>
+  <p style="font-size: 20px; color: #555; line-height: 1.5; margin-bottom: 20px;">Powered by the Superviolin Python package, our app makes it easy to create beautiful and informative Violin SuperPlots described in our editorial <a href='https://www.molbiolcell.org/doi/10.1091/mbc.E21-03-0130'><strong>Violin SuperPlots: Visualizing heterogeneity in large datasets</strong></a>.</p>
+  <p style="font-size: 20px; color: #555; line-height: 1.5; margin-bottom: 20px;">Simply upload your data, specify the relevant columns, and download your custom plots in SVG or PNG format.</p>
+  <p style="font-size: 20px; color: #555; line-height: 1.5; margin-bottom: 20px;">With many options to customize the appearance, layout, and quality of your Violin SuperPlots, you can experiment with different settings which automatically update the plot as you go to find the perfect visualization for your data. Plus, section 6 of the <a href='https://github.com/kynnemall/superviolin/blob/master/documentation.pdf'><strong>documentation</strong></a> includes helpful tips for customizing the plot appearance and labeling your axes with sub/superscripts and Greek letters.</p>
+  <p style="font-size: 20px; color: #555; line-height: 1.5; margin-bottom: 20px;">Try it out now and take your data visualization to the next level!</p>
+</div>""", unsafe_allow_html=True)
 
-st.markdown("""
-        <p style='text-align: justify'>This web app uses the Superviolin Python package created as part of 
-        the editorial <a href='https://www.molbiolcell.org/doi/10.1091/mbc.E21-03-0130'><strong>Violin SuperPlots: Visualizing heterogeneity in large datasets</strong></a> 
-        to generate Violin SuperPlots from user-supplied data. Upload your data, customize as you like, and download your Violin SuperPlots
-        in SVG or PNG format.<br>
-        This web app works similarly to the Python package and uses input similar to those described in section 3 of the <a href='https://github.com/kynnemall/superviolin/blob/master/documentation.pdf'><strong>documentation</strong></a> 
-        (Especially useful if you need help with sub/superscript or greek letters (section 6i) in your axis labels).
-        <br><br>In the required input tab of the sidebar on the left, please specify:
-        <ul>
-        <li>The file format
-        (<a href='https://github.com/kynnemall/superviolin/blob/master/web_app/tidy_example.png'  target="_blank" rel="noopener noreferrer">tidy</a> or <a href='https://github.com/kynnemall/superviolin/blob/master/web_app/untidy_example.png'  target="_blank" rel="noopener noreferrer">untidy</a>),</li>
-        <li>the columns in your data,</li>
-        <li>and whether your data is in the tidy format or not.</li>
-        </ul>
-        <em>If your data is in the untidy format, please provide column names so the app can process your data.</em><br>
-        Any adjustments you make to the settings will be applied automatically. 
-        Issues can be reported to Martin on <a href='(https://twitter.com/MartinPlatelet' target="_blank" rel="noopener noreferrer">Twitter</a> via direct message
-        </p>""", unsafe_allow_html=True)
-        
-        
-with st.sidebar.expander("Required input"):
+with st.sidebar.expander("Upload data (required)"):
 
     # settings as radio buttons and text input
     tidy = st.radio("Choose data format", ("Tidy", "Untidy"))
+    st.markdown('Examples of [**tidy**](https://github.com/kynnemall/superviolin/blob/master/web_app/tidy_example.png) and [**untidy**](https://github.com/kynnemall/superviolin/blob/master/web_app/untidy_example.png) data formats')
     suffix = st.radio("Choose a file format", ("CSV", "Excel"))
     condition = st.text_input("Name of the conditions column in your data")
     value = st.text_input("Name of the value column in your data")
@@ -116,17 +103,20 @@ with st.sidebar.expander("General plot formatting"):
 with st.sidebar:
     st.markdown('Dimensions')
     st.components.v1.html('<span class="__dimensions_badge_embed__" data-doi="10.1091/mbc.e21-03-0130" data-legend="never"></span><script async src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script>')
-    
-# process logic to make superviolin
-if uploaded_file is not None:
-    if suffix == "CSV":
-        df = pd.read_csv(uploaded_file)
+
+@st.cache_data
+def read_data(fname, ending, tidy, condition, value, replicate):
+    if ending == "CSV":
+        df = pd.read_csv(fname)
     else:
-        df = pd.read_excel(uploaded_file)
+        df = pd.read_excel(fname)
+    assert condition in df.columns, st.markdown('Condition column not found in data; Are you sure you typed it correctly?')
+    assert value in df.columns, st.markdown('Value column not found; Are you sure you typed it correctly?')
+    assert replicate in df.columns, st.markdown('Replicate column not found; Are you sure you typed it correctly?')
         
     if tidy != "Tidy":
         # read multiple sheets in "untidy" format
-        xl = pd.ExcelFile(uploaded_file)
+        xl = pd.ExcelFile(fname)
         sheets = xl.sheet_names # replicates
         dfs = []
         for s in sheets:
@@ -138,6 +128,11 @@ if uploaded_file is not None:
                 df[replicate] = s
                 dfs.append(df)
         df = pd.concat(dfs)
+    return df
+    
+# process logic to make superviolin
+if uploaded_file is not None:
+    df = read_data(uploaded_file, suffix, tidy, condition, value, replicate)
 
     with st.expander('Filter data (optional)'):
         st.markdown('<ul><li>Select a column from the selectbox below</li><li>If the variable is numeric, choose the upper and lower limits</li><li>If the variable is categorical, choose categories to keep</li></ul>',
@@ -200,4 +195,4 @@ if uploaded_file is not None:
                 pass
     except:
         st.write("Error calculating statistics")
-    st.sidebar.markdown("**Please cite the editorial if using this web app to generate figures for your publications**")
+    st.sidebar.markdown("**Please cite the editorial if using this web app to generate figures for publication**")
