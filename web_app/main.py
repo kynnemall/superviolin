@@ -8,11 +8,9 @@ Created on Sat Jul 24 16:21:59 2021
 
 import re
 import scipy
-import requests
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
-from bs4 import BeautifulSoup
 from datetime import datetime
 from superviolin.plot import Superviolin
 from matplotlib import rcParams as params
