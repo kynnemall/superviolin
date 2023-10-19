@@ -90,6 +90,7 @@ with st.sidebar.expander("General plot formatting"):
                                max_value=2., value=0.8, step=0.2)
     rotate_xticks = st.slider("X-tick rotation", value=0, min_value=0,
                               max_value=90, step=5)
+    log_scale = st.checkbox('Log scale for Y axis')
     params["xtick.labelsize"] = xtick_lbl_size
     params["ytick.labelsize"] = ytick_lbl_size
     params["axes.labelsize"] = axes_lbl_size
@@ -159,6 +160,8 @@ if uploaded_file is not None:
                         plot.total_width, plot.linewidth,
                         plot.stats_on_plot, plot.show_legend)
     plt.xticks(rotation=rotate_xticks)
+    if log_scale:
+        plt.yscale('log')
     plt.savefig("ViolinSuperPlot.png", dpi=int(dpi))
     plt.savefig("ViolinSuperPlot.svg", dpi=int(dpi))
     st.image("ViolinSuperPlot.png", caption="Your Violin SuperPlot",
