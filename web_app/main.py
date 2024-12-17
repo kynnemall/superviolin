@@ -18,7 +18,7 @@ from streamlit_extras.dataframe_explorer import dataframe_explorer
 st.set_page_config(page_title="Violin SuperPlot Web App",
                    page_icon="violin",
                    layout="wide")
-st.set_option('deprecation.showPyplotGlobalUse', False)
+# st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # hide menu from app users
 st.markdown(""" <style>
